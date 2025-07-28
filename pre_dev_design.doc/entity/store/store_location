@@ -1,0 +1,7 @@
+# store_location
+
+id(store.id, 1:1) [pk, fk]
+
+geog_point
+
+(R-tree ?)

@@ -1,0 +1,15 @@
+Store Client <-> Server 간 양방향 필요
+# WebSocket
+
+socket.io vs ws
+
+socket.io
+웹소켓이 아님
+https://socket.io/docs/v4/
+이벤트 방식
+재연결
+ws(웹소켓) 에 비해 오버헤드있음
+
+
+서버 클라이언트 모두 구현이 너무 socket.io 에 의존하진 말자. (이벤트 기능 같은것)
+레이어를 두자?

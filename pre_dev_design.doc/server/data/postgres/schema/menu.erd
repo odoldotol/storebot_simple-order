@@ -1,0 +1,111 @@
+Table store {
+  uuid uuid [pk]
+}
+
+Table category {
+  uuid uuid [pk]
+  store_id uuid
+  order_int tinyint
+  name varchar
+}
+
+Ref: category.store_id > store.uuid
+
+Table category__item {
+  uuid uuid [pk]
+  category_id uuid
+  item_id uuid
+  order_int tinyint
+}
+
+Ref: category__item.category_id > category.uuid [delete: cascade]
+Ref: category__item.item_id > item.uuid
+
+Table item {
+  uuid uuid [pk]
+  store_id uuid
+  name varchar
+  price int
+  is_main boolean
+  is_enabled boolean
+}
+
+Ref: item.store_id > store.uuid
+
+Table item__item_option {
+  uuid uuid [pk]
+  item_id uuid
+  item_option_id uuid
+  order_int tinyint
+}
+
+Ref: item__item_option.item_id > item.uuid
+Ref: item__item_option.item_option_id > item_option.uuid
+
+Table item__item_option_category {
+  uuid uuid [pk]
+  item_id uuid
+  item_option_category_id uuid
+  order_int tinyint
+}
+
+Ref: item__item_option_category.item_id > item.uuid
+Ref: item__item_option_category.item_option_category_id > item_option_category.uuid [delete: cascade]
+
+Table item__selection {
+  uuid uuid [pk]
+  item_id uuid
+  selection_id uuid
+  order_int tinyint
+}
+
+Ref: item__selection.item_id > item.uuid
+Ref: item__selection.selection_id > selection.uuid [delete: cascade]
+
+Table item_option {
+  uuid uuid [pk]
+  store_id uuid
+  name varchar
+  price int
+  is_enabled boolean
+}
+
+Ref: item_option.store_id > store.uuid
+
+Table item_option_category {
+  uuid uuid [pk]
+  store_id uuid
+  name varchar
+}
+
+Ref: item_option_category.store_id > store.uuid
+
+Table item_option_category__item_option {
+  uuid uuid [pk]
+  item_option_category_id uuid
+  item_option_id uuid
+  order_int tinyint
+}
+
+Ref: item_option_category__item_option.item_option_category_id > item_option_category.uuid [delete: cascade]
+Ref: item_option_category__item_option.item_option_id > item_option.uuid
+
+Table selection {
+  uuid uuid [pk]
+  store_id uuid
+  name varchar
+  min tinyint
+  max tinyint
+}
+
+Ref: selection.store_id > store.uuid
+
+Table selection__item_option {
+  uuid uuid [pk]
+  selection_id uuid
+  item_option_id uuid
+  order_int tinyint
+}
+
+Ref: selection__item_option.selection_id > selection.uuid [delete: cascade]
+Ref: selection__item_option.item_option_id > item_option.uuid

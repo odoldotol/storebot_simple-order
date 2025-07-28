@@ -1,0 +1,8 @@
+# menu_item_option_category
+
+- PK(store_id, name, id)
+
+id(uuid, unique)
+store_id(store.id) [fk]
+
+name

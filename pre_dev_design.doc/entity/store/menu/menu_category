@@ -1,0 +1,10 @@
+# menu_category
+
+- PK(store_id, order_int, id)
+
+id(uuid, unique)
+store_id(store.id) [fk]
+
+order_int(smallint)
+
+name

@@ -1,0 +1,11 @@
+# menu_item__item_option_category
+
+- PK(store_id, item_id, order_int, item_option_category_id)
+- UNIQUE(item_id, item_option_category_id)
+
+store_id(store.id) [fk]
+
+item_id(item.id) [fk]
+item_option_category_id(item_option_category.id) [fk, delete: cascade]
+
+order_int(smallint)

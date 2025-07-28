@@ -1,0 +1,9 @@
+# order_history
+
+(order_id, )
+
+order_id(order.id) [fk]
+
+timestamp(Not Null)
+
+...

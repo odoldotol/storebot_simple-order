@@ -1,0 +1,10 @@
+# day_business_history
+
+- PK(day_business_id, server_at, event_code)
+
+day_business_id(day_business.id) [fk]
+
+event_code // ready, open, break, reopen, closing, closed
+
+client_at(timestamp)
+server_at(timestamp)

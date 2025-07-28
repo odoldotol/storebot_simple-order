@@ -1,0 +1,11 @@
+# order_item__item_option
+
+-PK (order_item_id, menu_item_option_id) # 추가한 순서를 따라야함
+
+order_item_id(order_item.id) [fk]
+menu_item_option_id # menu_item_option.id 를 넣지만 외래키로 관계를 가지지는 않음
+
+name
+amount
+quantity
+total_amount

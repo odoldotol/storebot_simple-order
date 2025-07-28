@@ -1,0 +1,16 @@
+# order_payment
+
+order_id(order.id) [pk, fk]
+
+method(enum, Not Null)
+detail
+
+tid
+
+amount(integer, Not Null)
+
+is_approved(boolean, Not Null)
+approved_at
+
+is_cancelled(boolean, Not Null)
+cancelled_at

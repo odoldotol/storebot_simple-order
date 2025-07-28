@@ -1,0 +1,8 @@
+# accounting_order
+
+(day_business_accounting_id, order_id)
+
+order_id(order.id, Not Null) [fk]
+day_business_accounting_id(day_business_accounting.id, Not Null) [fk]
+
+...

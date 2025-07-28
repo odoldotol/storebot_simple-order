@@ -1,0 +1,16 @@
+ready
+  > open
+
+open - 주문가능
+  > break
+  > closing
+
+break
+  > reopen
+
+closing
+  > reopen
+  > close
+
+close - 정산가능
+  > ready

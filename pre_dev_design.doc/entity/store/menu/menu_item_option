@@ -1,0 +1,11 @@
+# menu_item_option
+
+- PK(store_id, is_enabled, name, id)
+
+id(uuid, unique)
+store_id(store.id) [fk]
+
+name
+price(INTEGER)
+
+is_enabled(bool) # 삭제불가. 대신 비활성.

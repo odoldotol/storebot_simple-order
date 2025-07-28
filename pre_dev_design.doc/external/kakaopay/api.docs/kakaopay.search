@@ -1,0 +1,45 @@
+https://developers.kakaopay.com/docs/payment/online/payment-detail
+
+# Request
+
+## Syntax
+POST /online/v1/payment/order HTTP/1.1
+Host: open-api.kakaopay.com
+Authorization: SECRET_KEY ${SECRET_KEY}
+Content-Type: application/json
+
+## Request Body Payload
+https://developers.kakaopay.com/docs/payment/online/payment-detail#order-inquiry-request-body
+필수(옵션 프롭은 위 링크에서 확인)
+```json
+{
+  "cid": "TC0ONETIME",
+  "tid": "T12345678901234567890",
+}
+```
+
+# Response
+
+## Response Body Payload
+https://developers.kakaopay.com/docs/payment/online/payment-detail#order-inquiry-response-body
+자세한것은 위 링크 확인
+```json
+{
+  "tid": "T12345678901234567890",
+  "cid": "TC0ONETIME",
+  "status": "completed",
+  "partner_order_id": "partner_order_id",
+  "partner_user_id": "partner_user_id",
+  "payment_method_type": "CARD",
+  "amount": {},
+  "cancel_amount": {},
+  "cancel_available_amount": {},
+  "item_name": "초코송이",
+  "item_code": "ITEM_CODE",
+  "quantity": 1,
+  "created_at": "2020-01-01T00:00:00+09:00",
+  "approved_at": "2020-01-01T00:00:00+09:00",
+  "canceled_at": "2020-01-01T00:00:00+09:00",
+  "selected_card_info": {},
+  "payment_action_details": [{}],
+}

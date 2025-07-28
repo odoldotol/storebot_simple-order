@@ -1,0 +1,9 @@
+# day_business
+
+- PK(store.id, day, id)
+
+id(uuid, unique)
+store_id(store.id) [fk]
+day(date)
+
+stream_key

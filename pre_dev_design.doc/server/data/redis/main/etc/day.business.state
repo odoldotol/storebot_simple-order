@@ -1,0 +1,13 @@
+store_id [Key]
+
+day_business_id
+
+status // ready, open, break, closing
+
+stream_key
+
+---
+
+마감시간정보 ?
+브레이크타임시간정보 ?
+예약가능시간정보 ?

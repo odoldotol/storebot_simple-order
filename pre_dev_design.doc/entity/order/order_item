@@ -1,0 +1,13 @@
+# order_item
+
+(order_id, id) # 추가한 순서 따라야함
+
+id
+order_id(order.id) [fk]
+
+menu_item_id # menu_item.id 를 넣지만 외래키로 관계를 가지지는 않음
+
+name
+amount
+quantity
+total_amount

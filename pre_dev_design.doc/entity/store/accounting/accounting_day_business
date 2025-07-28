@@ -1,0 +1,5 @@
+# accounting_day_business
+
+day_business_id(day_business.id, Not Null) [pf, fk]
+
+...

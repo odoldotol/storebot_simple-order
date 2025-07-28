@@ -1,0 +1,5 @@
+# store_auth
+
+id(store.id, 1:1) [pk, fk]
+
+(인증관련)

@@ -1,0 +1,9 @@
+# order
+
+- INDEX(user_id, id)
+
+id(uuid, unique) [pk]
+
+user_id(user.id, Not Null) [fk]
+store_id(store.id, Not Null) [fk]
+day_business_id(business_day.id, Not Null) [fk]
