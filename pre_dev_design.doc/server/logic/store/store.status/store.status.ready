@@ -1,0 +1,22 @@
+### Store Client
+```
+[Send HTTP REQ Server] Ready Store {store_id} (블로킹/동기식?)
+```
+
+### Server
+```
+[Receive HTTP REQ StoreClient] Ready Store {store_id}
+Store Admin Auth
+- generate stream_key, 존재하지 않음 확인, XADD Ready message(Stream 생성)
+  - Day Business State 생성
+    - Day Business Record 생성
+      - admin소켓에 스트림읽기Observable 연결해주기
+      - 스트림에 admin소켓쓰기Observable 연결해주기
+        - [Send HTTP RES StoreClient] 201
+```
+
+### Store Client
+```
+[Receive HTTP RES Server] 201
+Ready 처리
+```
