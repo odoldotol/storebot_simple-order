@@ -1,0 +1,30 @@
+# server
+
+익숙한 nestjs express 조합
+
+## 메뉴 DB
+Json 으로 대체
+
+
+## Accounting
+수작업
+
+
+## Redis
+1개 돌려 일단
+
+
+
+# StoreClient
+
+아래 3가지만 구현
+- 단일 로그인세션 허용
+- 주문 받기 관현 기능
+- Accounting 된것 조회 기능
+
+
+
+
+# Alert
+
+FCM 월 300만 무료라면 Alert 앱 배포하고 이것 이용.
