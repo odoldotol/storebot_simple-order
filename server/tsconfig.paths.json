@@ -6,6 +6,7 @@
       "@app/*": ["src/app/*"],
       "@common/*": ["src/common/*"],
       "@config/*": ["src/config/*"],
+      "@kakaoChatbotSkill": ["src/kakaoChatbotSkill/index"],
       "@kakaoChatbotSkill/*": ["src/kakaoChatbotSkill/*"],
       "@menu/*": ["src/menu/*"],
       "@order/*": ["src/order/*"],
