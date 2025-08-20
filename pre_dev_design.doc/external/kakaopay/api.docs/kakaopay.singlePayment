@@ -41,7 +41,10 @@ https://developers.kakaopay.com/docs/payment/online/single-payment#payment-ready
 ```
 
 # 결제요청 - 사용자 결제 수단 선택
-redirect URL 에서 고객이 결제수단 선택후 인증까지 마치면 approval_url 로 리다이렉트 됨.(이떄 pg_token 을 쿼리스트링으로 전달)
+redirect URL 에서 고객이 결제수단 선택후 인증까지 마치면 approval_url 로 리다이렉트 됨.
+이떄 pg_token 을 함께 전달 (쿼리스트링|파라미터) - 문서마다 설명이 상이하여 직접 확인필요할듯
+요청 취소 : cancel_url로 redirect
+요청 유효 시간(15분) 경과 : fail_url로 redirect
 
 # 결제승인
 

@@ -64,8 +64,8 @@ redis stream --- rxjs --- socket.io
 ## Place Order
 ![place_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_place_order.jpeg)
 
-[more](./server/logic/customer/order.place)  
 [order consistency](./server/logic/order.consistency)
+[detail](./server/logic/customer/order.place.v2)  
 
 <br><br>
 

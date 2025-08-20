@@ -1,91 +1,119 @@
-유저가 주문 세션을 구성한 상태에서 시작함
-클라이언트에서 주문서 세션을 유저에게 확인받아야함
-이후 서버에 order/place 요청함으로서 시작
+### OrderSession
+유저id-주문서객체
+유저가 구성한 주문서
+ttl 있음
+주문서세션객체는 id(OrderSessionId) 를 가지며 id 는 세션생성타임스템프와 버전(수정카운터) 으로 구성
+세션을 수정할떄마다 버전이 올라가며 ttl 도 갱신
 
-# order/place 요청 인입,
-주문서 세션 ttl 30분으로 재설정? (에러시 로깅)
-주문서 세션읽기(없거나 에러시 *실패처리)
-- 현 시간정보 생성
-[
-  현 시간정보로 *유저락 걸기 (결제중일때는 유저는 주문서 세션 생성/수정/삭제 불가) (에러시 실패처리)
-  현 시간정보를 주문서 세션 결제정보에 저장 (에러시 실패처리)
-]
-  - 매장상태 오픈인지 확인 (에러시, 오픈아닐시 실패처리)
-    - 주문서id 생성 (간단하게, DB 에 order 레코드 만들자) <PostgresTX> (에러시 실패처리)
-      - 주문서 세션에 주문id 업데이트 (에러시 실패처리)
-        - kakaopay 결제준비요청 (에러시, 실패응답시 실패처리)
-          - 주문서 세션 결제정보에 tid 등 결제정보 업데이트 (에러시 실패처리)
-            - 결제 승인 리다이렉트 응답
+### PlacementSession
+유저id-Placement객체(OrderSessionId, 주문id, 등 주문정보)
+유저가 주문중인지
+ttl 은 결제 타임아웃 고려
+
+### PaymentSession
+주문id-Placement객체(OrderSessionId, tid 등 결제 정보)
+주문이 결제중인지
+ttl 은 결제 타임아웃 고려
+
+
+
+
+# /kakao-chatbot-skill/order/session/check
+PlacementSession 있으면 실패응답
+- OrderSession 읽기 (없으면 없음응답, 에러시 실패응답)
+  - OrderSession ttl 갱신 (에러시 로깅)
+    OrderSession 응답
+
+
+
+유저는 OrderSession 을 확인하고 주문하기 버튼을 클릭하면 order/place 요청 발생 (이떄 id 를 보냄)
+
+
+
+# /kakao-chatbot-skill/order/place (skillPayload 에 세션id)
+매장상태 오픈인지 확인 (에러시, 오픈아닐시 *실패처리)
+- 주문id 생성(uuid v4) (에러시 실패처리)
+  PlacementSession 생성 (주문중일때는 유저는 OrderSession 생성/수정/삭제 불가) (중복 또는 에러시 실패처리)
+  - OrderSession 읽기 (없거나 에러시 실패처리)
+    - OrderSession ttl 갱신 (에러시 로깅)
+      OrderSessionId 동일한지 확인 (다르면 실패처리)
+      - kakaopay *결제준비요청 (에러시, 실패응답시 실패처리)
+        - Payment세션 생성 (중복 또는 에러시 실패처리)
+          - 결제 버튼 포함한 스킬응답
 
 
 ### 실패처리
-주문서 세션 유저락 키(주문서 세션 키:lock) 제거
-(Postgres 주문서 레코드를 삭제하지 않음, accouningBatch 에서 삭제하든지 하자)
+PlacementSession 제거
 실패 응답
 
-### 유저락(주문서 세션)
-주문서 세션 키:lock 을 키로하고 시간정보를 값으로 하는 레디스 k-v 데이터 생성
-(TTL 5분? 주문/결제타임아웃 보다 길게 설정하기)
+### 결제준비요청 바디에는 다음 3가지 URL이 포함
+approval_url: "/order/placement/approval/<UserKey>", (<UserKey> 는 user_id 를 가리킴)
+cancel_url: "/order/placement/cancel/<UserKey>",
+fail_url: "/order/placement/fail/<UserKey>",
 
 
 
+유저가 버튼 누르고 결제인증 수행에 따라 approval(pg_token 포함), cancel, fail 요청 발생
+pg_token 이 파라미터로 전달되는지 쿼리스트링으로 전달되는지 확인 필요(문서마다 다르게 설명됨)
 
-# 결제 승인요청 인입 (시간초과 응답 구현필요)
-락 시간정보가 너무 오래되었는지 확인 (오래되었으면 승인실패 응답) (결제 시간초과 로직은 카카오페이를 따르고 이용하자)
-- rxjs Subject 만들고 userId-Subject 맵에 추가하기 (userId 중복인경우 *Subject에러처리)
-  Subject 을 통해 응답 체이닝하기 (컨트롤러 매서드에서 lastValueFrom 으로 프로미스 리턴하거나 직접 구독해서 처리하거나)
-  결제승인스트림 메세지(pgtoken 유저id 주문id 및 최소정보) 푸시 (에러시 Subject에러처리)
 
+
+# /order/placement/approval/<UserKey>[/<pg_token>]|[?pg_token=<pg_token>]
+[
+  OrderSession 읽기
+  PlacementSession 읽기
+] (둘중 하나라도 없거나 에러시 *실패처리후 실패응답)
+- PaymentSession 읽기 (없거나 에러시 실패처리후 실패응답)
+  - OrderSessionId 모두 일치하는지 확인 (일치하지않으면 실패처리후 실패응답)
+    rxjs Subject 만들고 userId-Subject 맵에 추가하기 (중복인경우 기존 Subject.error 호출하고 새 Subject 덮기)
+    Subject 을 통해 응답 체이닝하기 (컨트롤러 매서드에서 lastValueFrom 으로 프로미스 리턴하거나 직접 구독해서 처리하거나)
+    결제승인스트림 메세지(pg_token, tid 등 결제정보 및 모든 세션정보 포함) 푸시 (에러시 *Subject에러처리)
+    - OrderSession 제거 (에러시 로깅)
+      PlacementSession 제거 (에러시 로깅)
+      PaymentSession 제거 (에러시 로깅)
+
+
+### 실패처리
+kakaopay 주문상태조회 및 취소처리 (에러시 로깅)
+PlacementSession 제거 (에러시 로깅)
+PaymentSession 제거 (에러시 로깅)
+실패알럿 보내기
 
 ### Subject에러처리
+*실패처리
 userId-Subject 맵에서 userId로 Subject 찾기 (없으면 noob)
 맵에서 Subject 제거
-유저락 제거 (에러시 로깅)
 Subject.error 처리
 
 
+# /order/placement/cancel/<UserKey>
+# /order/placement/fail/<UserKey>
+PlacementSession 제거 (에러시 로깅)
+PaymentSession 제거 (에러시 로깅)
+응답
 
 
-# 결제승인스트림 구독자가 메시지 수신(시간초과 구현필요)
-[
-  주문서 세션 읽기 (없거나 에러시 *주문실패처리)
-  주문서 세션 유저락 확인 (락 없으면 주문실패처리)
-]
-- 락 시간정보가 주문서 세션의 락 시간정보와 일치하는지 확인 (일치하지않으면 주문실패처리)
-  - 메세지와 주문서 세션 데이터로 kakaopay 결제 승인요청하기 (이미 승인된 경우 성공, 승인실패/에러시 주문실패처리)
-    - 주문서 DB 생성하기 <PostgresTX> (에러시 주문실패처리) (이미 생성되었던건지 확인필요)
-      - 스트림 캐시에 주문서id 중복유무 확인후 없으면 스트림에 추가하고 주문서id-스트림key/id 캐싱하기 (중복일시 성공, 추가 실패시 주문실패처리, 캐싱에러시 로깅) (캐싱 실패하고 메시지 재처리되어서 스트림 중복 추가되어도 괜찮음. store client 애서 메시지 받을때 중복은 처리 않함. 이 문제 발견시 캐싱 보정 로직이 필요할까?)
-        - 주문서 세션 삭제 (에러시 로깅)
-          유저락 제거 (에러시 로깅)
-          UserRecentOrder 캐싱하기 (에러시 로깅)
-          *Subject완료처리 (완료처리할 Subject 찾을수 없을경우에도 성공)
-          메시지 성공처리하기
+
+# 결제승인스트림 구독자가 메시지 수신
+메세지로 kakaopay 결제 승인요청하기 (이미 승인된 경우 성공간주, 승인실패/에러시 *주문실패처리) (재시도로직?)
+- Order 어그리거트 생성하기 <PostgresTX> (이미 생성되어있을경우 성공간주, 에러시 주문실패처리)
+  - 스트림 캐시에 주문서id 중복유무 확인후 없으면 스트림에 추가하고 주문서id-스트림key/id 캐싱하기 (중복일시 성공, 추가 실패시 주문실패처리, 캐싱에러시 로깅) (캐싱 실패하고 메시지 재처리되어서 스트림 중복 추가되어도 괜찮음. store client 애서 메시지 받을때 중복은 처리 않함. 이 문제 발견시 캐싱 보정 로직이 필요할까?)
+    - UserRecentOrder 캐싱하기 (에러시 로깅)
+      *Subject완료처리 (에러시 로깅)
+      주문성공 알럿 보내기 (에러시 로깅)
+      - 메시지 성공처리하기
 
 
-### 주문실패처리 (주문실패의 처리도 스트림 통해야할까...)
+### 주문실패처리
 kakaopay 결제 취소
-- 주문서 레코드 결제 취소정보 업데이트 <PostgresTX>
-  - 주문서 세션 결제정보 제거
-    유저락 제거 (에러시 로깅)
+- Order 어그리거트 없으면 패스, 있으면 결제 취소정보 업데이트 <PostgresTX>
+  - userId-Subject 맵에서 userId로 Subject 찾기 (없으면 noob)
+    맵에서 제거하기
     Subject.error 처리
-    메시지 성공처리하기
+    주문실패 알럿 보내기 (에러시 로깅)
+    - 메시지 성공처리하기
 
 ### Subject완료처리
 userId-Subject 맵에서 userId로 Subject 찾기 (없으면 noob)
 맵에서 제거하기
 Subject.next/complete 처리
-
-
-
-
-
-
-
-# 주문실패처리를 신뢰할 수 있도록 하기
-이거 실패하면 치명적임
-
-
-
-# 주문서 세션과 결제주문서 세션의 분리?
-주문 컨텍스트, 스킬요청응답 본문에 데이터까지 함께 고려
-

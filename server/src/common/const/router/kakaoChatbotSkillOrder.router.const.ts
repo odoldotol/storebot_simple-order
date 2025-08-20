@@ -5,11 +5,7 @@ export const kakaoChatbotSkillOrderRouter: Router<keyof KakaoChatbotSkillOrderCo
 {
   "prefix": "kakao-chatbot-skill/order",
   "routes": {
-    "checkOrderSession": {
-      "method": "POST",
-      "path": "session/check"
-    },
-    "placeOrder": {
+    "place": {
       "method": "POST",
       "path": "place"
     }

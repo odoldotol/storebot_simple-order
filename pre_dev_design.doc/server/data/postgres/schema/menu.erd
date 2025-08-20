@@ -109,3 +109,179 @@ Table selection__item_option {
 
 Ref: selection__item_option.selection_id > selection.uuid [delete: cascade]
 Ref: selection__item_option.item_option_id > item_option.uuid
+
+
+
+
+
+
+
+---
+
+
+Table store {
+  id uuid [pk]
+}
+
+
+Table menu_category {
+  store_id uuid
+  order_int smallint
+  id uuid [pk, unique]
+  name text
+
+  indexes {
+    (store_id, order_int, id) [pk]
+  }
+}
+
+Table menu_category__item {
+  store_id uuid
+  category_id uuid
+  item_id uuid
+  order_int smallint
+
+  indexes {
+    (store_id, category_id, order_int, item_id) [pk]
+  }
+
+  // UNIQUE(category_id, item_id)
+}
+
+Table menu_item {
+  store_id uuid
+  id uuid [pk, unique]
+  image_url text
+  name text
+  price integer
+  is_main boolean
+  is_enabled boolean
+
+  indexes {
+    (store_id, is_enabled, name, id) [pk]
+  }
+}
+
+Table menu_item__item_option {
+  store_id uuid
+  item_id uuid
+  item_option_id uuid
+  order_int smallint
+
+  indexes {
+    (store_id, item_id, order_int, item_option_id) [pk]
+  }
+
+  // UNIQUE(item_id, item_option_id)
+}
+
+Table menu_item__item_option_category {
+  store_id uuid
+  item_id uuid
+  item_option_category_id uuid
+  order_int smallint
+
+  indexes {
+    (store_id, item_id, order_int, item_option_category_id) [pk]
+  }
+
+  // UNIQUE(item_id, item_option_category_id)
+}
+
+Table menu_item__selection {
+  store_id uuid
+  item_id uuid
+  selection_id uuid
+  order_int smallint
+
+  indexes {
+    (store_id, item_id, order_int, selection_id) [pk]
+  }
+
+  // UNIQUE(item_id, selection_id)
+}
+
+Table menu_item_option {
+  store_id uuid
+  id uuid [pk, unique]
+  name text
+  price integer
+  is_enabled boolean
+
+  indexes {
+    (store_id, is_enabled, name, id) [pk]
+  }
+}
+
+Table menu_item_option_category {
+  store_id uuid
+  id uuid [pk, unique]
+  name text
+
+  indexes {
+    (store_id, name, id) [pk]
+  }
+}
+
+Table menu_item_option_category__item_option {
+  store_id uuid
+  item_option_category_id uuid
+  item_option_id uuid
+  order_int smallint
+
+  indexes {
+    (store_id, item_option_category_id, order_int, item_option_id) [pk]
+  }
+
+  // UNIQUE(item_option_category_id, item_option_id)
+}
+
+Table menu_selection {
+  store_id uuid
+  id uuid [pk, unique]
+  name text
+  order_int smallint
+  min smallint
+  max smallint
+
+  indexes {
+    (store_id, order_int, id) [pk]
+  }
+}
+
+Table menu_selection__item_option {
+  store_id uuid
+  selection_id uuid
+  item_option_id uuid
+  order_int smallint
+
+  indexes {
+    (store_id, selection_id, order_int, item_option_id) [pk]
+  }
+
+  // UNIQUE(selection_id, item_option_id)
+}
+
+Ref: menu_category.store_id > store.id
+Ref: menu_category__item.store_id > store.id
+Ref: menu_category__item.category_id > menu_category.id // delete: cascade
+Ref: menu_category__item.item_id > menu_item.id
+Ref: menu_item.store_id > store.id
+Ref: menu_item__item_option.store_id > store.id
+Ref: menu_item__item_option.item_id > menu_item.id
+Ref: menu_item__item_option.item_option_id > menu_item_option.id
+Ref: menu_item__item_option_category.store_id > store.id
+Ref: menu_item__item_option_category.item_id > menu_item.id
+Ref: menu_item__item_option_category.item_option_category_id > menu_item_option_category.id // delete: cascade
+Ref: menu_item__selection.store_id > store.id
+Ref: menu_item__selection.item_id > menu_item.id
+Ref: menu_item__selection.selection_id > menu_selection.id // delete: cascade
+Ref: menu_item_option.store_id > store.id
+Ref: menu_item_option_category.store_id > store.id
+Ref: menu_item_option_category__item_option.store_id > store.id
+Ref: menu_item_option_category__item_option.item_option_category_id > menu_item_option_category.id // delete: cascade
+Ref: menu_item_option_category__item_option.item_option_id > menu_item_option.id
+Ref: menu_selection.store_id > store.id
+Ref: menu_selection__item_option.store_id > store.id
+Ref: menu_selection__item_option.selection_id > menu_selection.id // delete: cascade
+Ref: menu_selection__item_option.item_option_id > menu_item_option.id

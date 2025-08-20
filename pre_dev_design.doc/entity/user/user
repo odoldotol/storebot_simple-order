@@ -1,6 +1,6 @@
 # user
 
+- Index(kakao_chatbot_user_key, id)
+
 id(uuid) [pk]
 kakao_chatbot_user_key
-
-- Index(kakao_chatbot_user_key)

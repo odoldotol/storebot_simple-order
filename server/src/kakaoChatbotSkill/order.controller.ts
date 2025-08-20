@@ -4,11 +4,12 @@ import {
   HttpStatus,
   Post
 } from '@nestjs/common';
-import { kakaoChatbotSkillOrderRouter } from '@common/const';
 import {
   KakaoChatbotSkillResponseOrderBody,
   SkillResponseV2
 } from './skillResponse';
+import { OrderPlacementService } from '@order/placement';
+import { kakaoChatbotSkillOrderRouter } from '@common/const';
 
 @Controller(kakaoChatbotSkillOrderRouter.prefix)
 // @UseGuards
@@ -17,17 +18,13 @@ import {
 export class KakaoChatbotSkillOrderController {
 
   constructor(
-    private readonly resOrderBody: KakaoChatbotSkillResponseOrderBody
+    private readonly resOrderBody: KakaoChatbotSkillResponseOrderBody,
+    private readonly orderPlacementSrv: OrderPlacementService
   ) {}
 
-  @Post(kakaoChatbotSkillOrderRouter.routes.checkOrderSession.path)
-  @HttpCode(HttpStatus.OK)
-  public checkOrderSession(): Promise<SkillResponseV2> {
-    return Promise.resolve(this.resOrderBody.checkOrderSession());
-  }
-
-  @Post(kakaoChatbotSkillOrderRouter.routes.placeOrder.path)
-  public placeOrder(): Promise<SkillResponseV2> {
-    return Promise.resolve(this.resOrderBody.placeOrder());
+  @Post(kakaoChatbotSkillOrderRouter.routes.place.path)
+  public async place(): Promise<SkillResponseV2> {
+    await this.orderPlacementSrv.place();
+    return this.resOrderBody.placeOrder();
   }
 }

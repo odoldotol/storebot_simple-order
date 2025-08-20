@@ -1,43 +1,54 @@
-주문서디비와 결제와 주문스트림 3 부분에서 주문 상태를 관리한다 (+주문서 세션)
+주문서디비와 결제와 주문스트림 3 부분에서 주문 상태를 관리한다
 => 3가지중 하나의 문제시 다른 두가지를 통해 복구/보정 가능?
 
+OrderSession
+OrderPlacementSession
+OrderPaymentSession
+각 주문서 세션을 통해 카카오톡 챗봇에서 유저의 비정상적 해동으로부터 일관성을 유지한다.
 
 
+OrderSession: 유저당 1개의 주문서 유지
+OrderPlacementSession: 유저당 1개의 주문하기 세션 유지 + OrderSession 버전 고정
+OrderPaymentSession: 주문당 1개의 결제세션 유지 + order_payment_token 으로 유저당 1개의 결제승인세션 보장
 
-order.place 로직에서 데이터처리부분만 보면 아래와 같음
+결제승인스트림: 외부 결제승인과 내부 주문승인처리간 일관성 확보, 성공할떄까지 재처리 가능(모니터링 필요)
 
-  세션(구성된 상태로 시작)
+
+매장스트림 available 확인: 매장 스트림애 메시지 추가 실패를 방지
+
+
+# order.place 로직에서 데이터처리부분만 보면 아래와 같음
+
+  OrderSession(구성된 상태로 시작)
 
 order/place
-  세션락 SET
-  레코드(order) CREATE
-  세션업데이트(id) SET
+  매장스트림 available 확인
+  OrderPlacementSession SET
   kakaopay결제준비 HTTP
-  세션업데이트(tid) SET
+  OrderPaymentSession SET
 
 order/approval
-  결제승인스트림(pgtoken) ADD
+  매장스트림 available 확인
+  세션검증
+  결제승인스트림(pg_token, OrderSession, OrderPlacementSession, OrderPaymentSession) ADD
+  세션(OrderSession, OrderPlacementSession, OrderPaymentSession) DEL
 
 결제승인스트림 READ
+  매장스트림 available 확인(재시도시에만?)
   kakaopay결제승인 HTTP
-  레코드(order aggregate) CREATE
-  주문스트림 ADD
-  세션 DEL
-  세션락 DEL
+  Order(aggregate) CREATE
+  매장스트림에 주문메시지 ADD
   결제승인스트림 ACK
 
 
-세션락: 결제간 유저의 주문서 세션 수정 막음
-결제승인스트림: 외부 결제승인과 내부 주문승인처리간 일관성 확보
 
-
-회색지대
-세션락 SET 이후 죽음 => 세션락 TTL
-레코드(order) CREATE 이후 어딘가에서 죽거나 정상적으로 실패시 => 버려진 order 레코드 제거 필요 (approval batch 또는 order batch 에서 처리?)
+회색지대?
+kakaopay결제준비 성공하고 OrderPaymentSession 생성 못하고 죽음 => kakaopay결제 취소해야함
+결제승인스트림 ADD 못하고 죽음 => 결제세션 파괴?
 결제승인스트림 ADD 이후 Redis 죽음 => Redis 가 복구 못하면 주문/결제 시간초과로 실패하거나 / Redis 가 스트림 복구하여 성공/실패 처리하거나
-kakaopay결제승인 이후 실패하고 결제취소까지 실패 => 이것도 스트림처리해야할지 고민
-세션/세션락 DEL 실패 => 문제 있을까...? 
-
+kakaopay결제승인 이후 실패하고 결제취소까지 실패 => 재시도, 모니터링
+Order(aggregate) CREATE 이후 매장스트림에 주문메시지 ADD 못하고 죽음 (매장이 닫히거나) => 결제취소, Order(aggregate) UPDATE
+...
 
 
 

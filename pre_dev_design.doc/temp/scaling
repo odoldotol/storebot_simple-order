@@ -17,14 +17,8 @@ Redis 는 앱과 함께 한 ec2 인스턴스에서 돌아감
 
 
 
-
-# scale-up
-RDS
-
-
-# scale-out
 CQRS (배민 order 사례)
 
-샤딩
+샤딩, 파티셔닝
 
 분산시스템, MSA, 단일장애점제거, 일관성, 복구/보정
