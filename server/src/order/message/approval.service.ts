@@ -13,6 +13,7 @@ export class OrderMessageApprovalService {
     orderPlacementSession: OrderPlacementSession,
     orderPaymentSession: OrderPaymentSession,
     pgToken: string,
+    nickname: string
   ): Promise<string> {}
 
   public subscribe() {}

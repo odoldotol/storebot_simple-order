@@ -101,7 +101,8 @@ export class OrderPlacementService {
 
   public async approve(
     userId: UserId,
-    pgToken: string
+    pgToken: string,
+    nickname: string
   ) {
     const result = this.orderPlacementApprovalResponseSrv.response(userId);
 
@@ -138,7 +139,8 @@ export class OrderPlacementService {
         orderSession,
         orderPlacementSession,
         orderPaymentSession,
-        pgToken
+        pgToken,
+        nickname
       );
 
       this.orderPaymentSessionSrv.close(userId).catch(e => this.logger.error(e));

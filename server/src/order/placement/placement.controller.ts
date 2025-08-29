@@ -18,7 +18,8 @@ export class OrderPlacementController {
   public approveByKakaopay() {
     // 파라미터 및 쿼리스트링에서 PaymentToken, pgToken 추출하기
     // PaymentToken 으로 userId 가져오기
-    this.orderPlacementService.approve(userId, pgToken);
+    // nickname 가져오기
+    this.orderPlacementService.approve(userId, pgToken, nickname);
   }
 
   @Post(orderPlacementRouter.routes.cancelByKakaopay.path)
