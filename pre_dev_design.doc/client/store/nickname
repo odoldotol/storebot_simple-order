@@ -1,0 +1,6 @@
+nickname set 구성
+
+주문 placed 시 nickname set 에 Add
+(중복시 랜덤숫자 붙여서 구분) - 2자리 랜덤숫자로 시도, 재 중복시 3자리, 4자리, ...
+
+주문 ready 이후 nickname set 에서 Delete

@@ -1,13 +1,12 @@
-user_id
+order_approval_msg_id
+store_msg_key(store_id, day_business_id)
+store_placed_msg_id
 
-# order_document...
 order_id
-order_state
+user_id
 ...
 
 timestamp
 
 
 
-
-order_number ?

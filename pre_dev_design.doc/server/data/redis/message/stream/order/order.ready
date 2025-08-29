@@ -5,15 +5,17 @@ order.message.ready
 
 ---
 
+order_approval_msg_id
+store_msg_key(store_id, day_business_id)
+store_placed_msg_id
+store_ready_msg_id
+
 user_id
 order_id
-
-(store_id)
-(day_business_id)
 
 timestamp
 
 
 
 
-order_number ?
+nickname
