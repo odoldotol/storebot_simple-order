@@ -10,7 +10,7 @@ break
 
 closing
   > reopen
-  > close
+  > close (결제타임아웃시간+a 만큼 대기한 이후 가능)
 
 close - 정산가능
   > ready

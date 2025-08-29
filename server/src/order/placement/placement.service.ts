@@ -6,7 +6,7 @@ import {
 } from '@order/session';
 import { StoreStateService } from '@store/state';
 import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
-import { OrderStreamApprovalService } from '@order/stream';
+import { OrderMessageApprovalService } from '@order/message';
 import { OrderPaymentSession, OrderPlacementSession, OrderSession, UserId } from '@common/type';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class OrderPlacementService {
     private readonly orderSessionSrv: OrderSessionService,
     private readonly orderPaymentSessionSrv: OrderPaymentSessionService,
     private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService,
-    private readonly orderStreamApprovalSrv: OrderStreamApprovalService
+    private readonly orderMessageApprovalSrv: OrderMessageApprovalService
   ) {}
 
   public async place(userId: UserId): Promise<{
@@ -29,11 +29,11 @@ export class OrderPlacementService {
     const orderSession = await this.orderSessionSrv.getWithRenewTtl(userId);
 
     if (orderSession === null) {
-      throw new Error(); //
+      throw new Error(); // Not Found Order Session
     }
 
     if ((await this.storeStateSrv.isOpen(orderSession.store_id)) === false) {
-      // 실패
+      throw new Error(); // Store Closed
     }
 
     if (await this.orderPlacementSessionSrv.isPending()) {
@@ -84,11 +84,7 @@ export class OrderPlacementService {
     orderPlacementSession: OrderPlacementSession;
     orderPaymentSession: OrderPaymentSession;
   }> {
-    const orderPlacementSession = await this.orderPlacementSessionSrv.start(userId);
-
-    if (this.orderSessionSrv.isSame(orderSession, orderPlacementSession) === false) {
-      throw new Error(); //
-    }
+    const orderPlacementSession = await this.orderPlacementSessionSrv.start(userId, orderSession);
 
     const orderPaymentSession = await this.orderPaymentSessionSrv.start(
       userId,
@@ -103,47 +99,58 @@ export class OrderPlacementService {
     };
   }
 
-  public async approve(userId: UserId) {
+  public async approve(
+    userId: UserId,
+    pgToken: string
+  ) {
+    const result = this.orderPlacementApprovalResponseSrv.response(userId);
+
     try {
       const orderSession = await this.orderSessionSrv.get(userId);
       const orderPlacementSession = await this.orderPlacementSessionSrv.get(userId);
 
-      if (orderPlacementSession === null || orderSession === null) {
-        throw new Error();
-      }
-
-      if ((await this.storeStateSrv.isOpen(orderSession.store_id)) === false) {
-        throw new Error();
+      if (orderPlacementSession === null) {
+        throw new Error(); // Not Found OrderPlacement Session
       }
 
       const orderPaymentSession = await this.orderPaymentSessionSrv.get(orderPlacementSession.order_id);
 
+      if (orderSession === null) {
+        throw new Error(); // Not Found Order Session
+      }
+
+      const isStoreOpen = await this.storeStateSrv.isOpen(orderSession.store_id);
+
       if (orderPaymentSession === null) {
-        throw new Error();
+        throw new Error(); // Not Found OrderPayment Session
       }
 
       if (this.orderSessionSrv.isSame(orderSession, orderPlacementSession, orderPaymentSession) === false) {
-        throw new Error();
+        throw new Error(); // Order Session Fault
       }
 
-      this.orderStreamApprovalSrv.push(
+      if (isStoreOpen === false) {
+        this.orderSessionSrv.close(userId).catch(e => this.logger.error(e));
+        throw new Error(); // Store Closed
+      }
+
+      await this.orderMessageApprovalSrv.push(
         orderSession,
         orderPlacementSession,
-        orderPaymentSession
-      )
-      .catch(error => {
-        // 실패처리, 결제세션파괴, 플레이스먼트 세션 제거, 실패알럿
-        this.orderPlacementApprovalResponseSrv.error(orderPlacementSession.order_id, error);
-      })
-      .then(() => {
-        // 3개 세션 모두 제거
-      })
+        orderPaymentSession,
+        pgToken
+      );
 
-      // 메시지푸시보다 응답 매핑이 먼저 일어나야함
-      return this.orderPlacementApprovalResponseSrv.response(orderPlacementSession.order_id);
-
+      this.orderPaymentSessionSrv.close(userId).catch(e => this.logger.error(e));
+      this.orderPlacementSessionSrv.close(userId).catch(e => this.logger.error(e));
+      this.orderSessionSrv.close(userId).catch(e => this.logger.error(e));
     } catch (error) {
-      // 실패처리, 결제세션파괴, 플레이스먼트 세션 제거, 실패알럿
+      this.orderPaymentSessionSrv.destroy(userId)
+      .then(() => this.orderPlacementSessionSrv.close(userId))
+      .catch(e => this.logger.error(e));
+      this.orderMessageApprovalFaultSrv.push(userId, error).catch(e => this.orderPlacementApprovalResponseSrv.error(userId, e));
     }
+
+    return result;
   }
 }

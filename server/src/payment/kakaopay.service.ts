@@ -29,5 +29,5 @@ export class KakaopayPaymentService {
 
   public async order() {}
 
-  public async cancel() {}
+  public async cancel(tid: string) {}
 }

@@ -47,11 +47,11 @@ export class OrderPaymentSessionService {
       tid,
       redirect,
       orderPaymentToken
-    ).catch((error) => {
-      this.orderPaymentTokenSrv.destroy(orderPaymentToken);
-      await this.kakaopayPaymentSrv.cancel(
+    ).catch(async (error: any) => {
+      this.orderPaymentTokenSrv.destroy(orderPaymentToken).catch(e => this.logger.error(e));
+      await this.kakaopayPaymentSrv.cancel( // 결제 준비중인것만 취소해야함
         tid,
-      );
+      ).catch(e => this.logger.error(e)); // 치명적일것 같음... 검토필!
 
       throw error;
     });
@@ -59,14 +59,19 @@ export class OrderPaymentSessionService {
 
   public async destroy(
     orderId: OrderId,
-    orderPaymentSession: OrderPaymentSession
+    orderPaymentSession?: OrderPaymentSession
   ): Promise<void> {
+    if (orderPaymentSession === undefined) {
+      const ss = await this.get(orderId);
+      return ss === null ? void 0 : this.destroy(orderId, ss);
+    }
+
     await Promise.all([
-      this.kakaopayPaymentSrv.cancel(
+      this.kakaopayPaymentSrv.cancel( // 결제 준비중인것만 취소해야함
         orderPaymentSession.tid
       ),
-      this.repo.del(orderId),
-      this.orderPaymentTokenSrv.destroy(orderPaymentSession.order_payment_token),
+      this.repo.del(orderId).catch(e => this.logger.error(e)),
+      this.orderPaymentTokenSrv.destroy(orderPaymentSession.order_payment_token).catch(e => this.logger.error(e)),
     ]);
   }
 }

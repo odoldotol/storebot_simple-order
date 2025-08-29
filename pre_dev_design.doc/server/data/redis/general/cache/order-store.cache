@@ -1,0 +1,6 @@
+<List>
+
+key
+order_id
+
+placed.message, ready.message, canceled.message 들의 stream key/id 를 리스트로 캐싱

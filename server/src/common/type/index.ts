@@ -8,9 +8,7 @@
  * version: Number(id.slice(14))  
  */
 export type OrderSessionId = `${number}-${number}`;
-
 export type OrderId = Uuid;
-
 export type UserId = Uuid;
 
 export type OrderPlacementSession = {
@@ -19,7 +17,6 @@ export type OrderPlacementSession = {
 }
 
 export type Uuid = string;
-
 export type Url = string;
 
 export type OrderPaymentSession = {
@@ -32,6 +29,7 @@ export type OrderPaymentSession = {
 export type OrderSession = {
   order_session_id: OrderSessionId;
   store_id: StoreId;
+  day_business_id: DayBusinessId;
 };
 
 export type Redirect = {
@@ -42,4 +40,5 @@ export type Redirect = {
   ios_app_scheme: string;
 };
 
-export type StoreId = Uuid;
+export type StoreId = number;
+export type DayBusinessId = number;

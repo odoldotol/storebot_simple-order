@@ -11,7 +11,7 @@ OrderSession: 유저당 1개의 주문서 유지
 OrderPlacementSession: 유저당 1개의 주문하기 세션 유지 + OrderSession 버전 고정
 OrderPaymentSession: 주문당 1개의 결제세션 유지 + order_payment_token 으로 유저당 1개의 결제승인세션 보장
 
-결제승인스트림: 외부 결제승인과 내부 주문승인처리간 일관성 확보, 성공할떄까지 재처리 가능(모니터링 필요)
+OrderApproval 스트림: 외부 결제승인과 내부 주문승인처리간 원자성 확보, 재처리, 실패처리 가능 (모니터링 필요)
 
 
 매장스트림 available 확인: 매장 스트림애 메시지 추가 실패를 방지
@@ -30,7 +30,7 @@ order/place
 order/approval
   매장스트림 available 확인
   세션검증
-  결제승인스트림(pg_token, OrderSession, OrderPlacementSession, OrderPaymentSession) ADD
+  OrderApproval 스트림(pg_token, OrderSession, OrderPlacementSession, OrderPaymentSession) ADD
   세션(OrderSession, OrderPlacementSession, OrderPaymentSession) DEL
 
 결제승인스트림 READ
@@ -38,23 +38,20 @@ order/approval
   kakaopay결제승인 HTTP
   Order(aggregate) CREATE
   매장스트림에 주문메시지 ADD
-  결제승인스트림 ACK
+  OrderApproval 스트림 ACK
+
+
+
+주문에 대한 Approval, ApprovalFault, Placed, Canceled, Ready 메시지 스트림을 두어 주문 상태 처리의 일관성을 더욱 높임
 
 
 
 회색지대?
 kakaopay결제준비 성공하고 OrderPaymentSession 생성 못하고 죽음 => kakaopay결제 취소해야함
-결제승인스트림 ADD 못하고 죽음 => 결제세션 파괴?
-결제승인스트림 ADD 이후 Redis 죽음 => Redis 가 복구 못하면 주문/결제 시간초과로 실패하거나 / Redis 가 스트림 복구하여 성공/실패 처리하거나
-kakaopay결제승인 이후 실패하고 결제취소까지 실패 => 재시도, 모니터링
-Order(aggregate) CREATE 이후 매장스트림에 주문메시지 ADD 못하고 죽음 (매장이 닫히거나) => 결제취소, Order(aggregate) UPDATE
+OrderApproval 스트림 ADD 못하고 죽음 => 결제세션 파괴?
+OrderApproval 스트림 ADD 이후 Redis 죽음 => Redis 가 복구 못하면 주문/결제 시간초과로 실패하거나 / Redis 가 스트림 복구하여 성공/실패 처리하거나
+결제만 성공하고 레디스 죽고 메시지 유실 => 레디스 죽으면 재가동때 복구세션 필요함. OrderApproval 스트림 읽어가면서 보정/재처리 가능 / OrderApproval 까지 유실되면 Payment 에 승인 요청 로그 확인하면서 처리해야함
+kakaopay결제승인 이후 실패하고 결제취소까지 실패 => 재처리 가능, 모니터링 필요
+Order(aggregate) CREATE 이후 매장스트림에 주문메시지 ADD 못하고 죽음 (매장이 닫히거나) => 실패처리(결제취소, Order(aggregate) UPDATE)
 ...
 
-
-
-
-
-위험
-결제승인된것이 Store Client 에 안뜸 => 메시지 재처리로 방지
-결제승인된 주문서 정보가 DB 에 저장안됨 => 메시지 재처리로 방지
-결제승인이후 뭔가의 실패로 취소로직 탔으나 결제 취소가 안됨 => 위험함

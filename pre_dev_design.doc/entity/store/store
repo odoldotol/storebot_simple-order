@@ -1,3 +1,4 @@
 # store
 
-id(uuid) [pk]
+group_id(int) [fk]
+id(int INCR) [pk]

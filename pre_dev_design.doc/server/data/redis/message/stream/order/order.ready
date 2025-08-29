@@ -1,3 +1,10 @@
+key
+x:order:ready
+
+order.message.ready
+
+---
+
 user_id
 order_id
 

@@ -1,6 +1,0 @@
-key
-x:order:{day_business_id}
-
-order.message.placed
-order.message.ready
-order.message.canceled

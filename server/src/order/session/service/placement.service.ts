@@ -1,17 +1,16 @@
 import {
   OrderId,
   OrderPlacementSession,
+  OrderSession,
   OrderSessionId,
   UserId
 } from "@common/type";
-import { OrderSessionService } from "./order.service";
 import { OrderIdService } from "./orderId.service";
 
 export class OrderPlacementSessionService {
 
   constructor(
     private readonly repo: OrderPlacementSessionRepository,
-    private readonly orderSessionSrv: OrderSessionService,
     private readonly orderIdSrv: OrderIdService
   ) {}
 
@@ -26,11 +25,14 @@ export class OrderPlacementSessionService {
     });
   }
 
-  public async start(userId: UserId): Promise<OrderPlacementSession> {
+  public async start(
+    userId: UserId,
+    orderSession: OrderSession
+  ): Promise<OrderPlacementSession> {
     return this.repo.set(
       userId,
       this.orderIdSrv.generate(),
-      await this.orderSessionSrv.getSessionId(userId)
+      orderSession.order_session_id
     )
   }
 }
