@@ -1,4 +1,4 @@
-ready
+preparing
   > open
 
 open - 주문가능
@@ -9,8 +9,14 @@ break
   > reopen
 
 closing
-  > reopen
+  > resume
   > close (결제타임아웃시간+a 만큼 대기한 이후 가능)
 
 close - 정산가능
-  > ready
+  > preparing
+
+
+
+
+businessActive - preparing, open, break 
+businessInactive - closing, close

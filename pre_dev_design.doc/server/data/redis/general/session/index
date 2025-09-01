@@ -1,0 +1,4 @@
+order.session - JSON
+placement.session - String
+payment.session - String
+payment.token - String

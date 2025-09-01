@@ -3,10 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { Url, UserId } from '@common/type';
 
 @Injectable()
-export class OrderPaymentTokenService {
+export class PaymentTokenService {
 
   constructor(
-    private readonly orderPaymentTokenRepo: OrderPaymentTokenRepository
+    private readonly repo: PaymentTokenRepository
   ) {}
 
   /**
@@ -23,12 +23,12 @@ export class OrderPaymentTokenService {
     do {
       const token = this.generateOpaqueToken(bytes);
 
-      if (this.orderPaymentTokenRepo.has(token)) {
+      if (this.repo.exists(token)) {
         retry++;
         continue;
       }
 
-      await this.orderPaymentTokenRepo.set(token, userId);
+      await this.repo.create(token, userId);
       return token;
     } while (retry < 100 /* retryLimit */);
 
@@ -36,7 +36,7 @@ export class OrderPaymentTokenService {
   }
 
   public destroy(token: Url): Promise<void> {
-    return this.orderPaymentTokenRepo.delete(token);
+    return this.repo.delete(token);
   }
 
   private generateOpaqueToken(bytes: number): Url {

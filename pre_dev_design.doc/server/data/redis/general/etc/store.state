@@ -1,0 +1,13 @@
+(../../../../../../server/src/common/type/index.ts)
+
+store_id [Key]
+
+business_id
+
+code // preparing, open, break, closing, closed
+
+---
+
+마감시간정보 ?
+브레이크타임시간정보 ?
+예약가능시간정보 ?

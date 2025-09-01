@@ -1,0 +1,5 @@
+businessActive, businessInactive 인 스토어들의 위치정보를 다른 키로 관리해서 찾기 쉽게
+
+closed -> preparing
+??? -> closing
+할떄 위치정보 추가삭제 필요함

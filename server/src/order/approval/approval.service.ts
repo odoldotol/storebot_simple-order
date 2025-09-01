@@ -1,5 +1,9 @@
 import { OrderPlacementApprovalResponseService } from "@order/placement";
-import { OrderStreamApprovalService } from "@order/stream";
+import {
+  OrderMessageApprovalFaultService,
+  OrderMessageApprovalService,
+  OrderMessagePlacedService
+} from "@order/message";
 import { KakaopayPaymentService } from "@payment";
 
 export class OrderApprovalService {
@@ -7,14 +11,16 @@ export class OrderApprovalService {
   private readonly sub
 
   constructor(
-    private readonly orderStreamApprovalSrv: OrderStreamApprovalService,
+    private readonly orderMessageApprovalSrv: OrderMessageApprovalService,
+    private readonly orderMessageApprovalFaultSrv: OrderMessageApprovalFaultService,
+    private readonly orderMessagePlacedSrv: OrderMessagePlacedService,
     private readonly kakaopayPaymentSrv: KakaopayPaymentService,
     private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService
   ) {
-    this.sub = this.orderStreamApprovalSrv.subscribe(); //
+    this.sub = this.orderMessageApprovalSrv.subscribe(); // ?
   }
 
-  public approve(
+  private approve(
     id: string,
     message: any
   ) {

@@ -1,28 +1,49 @@
-# Logic & System
+<br>
 
-```
-AWS RDS
-  Postgres 인스턴스 1개
-AWS EC2 (PFA 인스턴스) (싱글코어 싱글스레드)
-  Nginx 1개
-  nodeJS 앱 1개 프로세스 1개
-  Redis 2개
-```
+Code is the most up-to-date. Documents probably outdated.
 
-<br><br>
+<br>
 
 ## System
+
 ![system](https://storage.googleapis.com/odoldotol-image-store/simpleorder_system.jpeg)
 
+### Customer Client
+Kakaotalk Channel Chatbot
+
+<br>
+
 ### Store Client
-single process, single thread
+single process, single thread  
+Web Browser
 
-### Streaming
-```
-redis stream --- rxjs --- socket.io
-                      --- services
-```
+<br>
 
+### Server
+Event Driven Architecture  
+Monolithic Architecture considering migration to MSA.
+
+Nestjs  
+
+<br>
+
+### DBMS
+Postgres
+
+<br>
+
+### Message Broker
+Redis Stream
+
+<br>
+
+### Cache, Session Storage
+Redis
+
+<br>
+
+### Payment Gateway
+KakaoPay
 
 <br><br>
 
@@ -33,46 +54,81 @@ redis stream --- rxjs --- socket.io
 <br><br>
 
 ## Ready Store
-![store_ready](https://storage.googleapis.com/odoldotol-image-store/simpleorder_store_ready.png)
+<!-- ![store_ready](https://storage.googleapis.com/odoldotol-image-store/simpleorder_store_ready.png) -->
 
 [more](./server/logic/store/store.status/store.status.ready)
 
 <br><br>
 
 ## Open Store
-![store_open](https://storage.googleapis.com/odoldotol-image-store/simpleorder_store_open.png)
-
-- Day Business State 변경
+<!-- ![store_open](https://storage.googleapis.com/odoldotol-image-store/simpleorder_store_open.png) -->
 
 <br><br>
 
 ## Search Store
-![search_store](https://storage.googleapis.com/odoldotol-image-store/simpleorder_search_store.png)
+<!-- ![search_store](https://storage.googleapis.com/odoldotol-image-store/simpleorder_search_store.png) -->
 
 <br><br>
 
 ## Get Menu
-![get_menu](https://storage.googleapis.com/odoldotol-image-store/simpleorder_get_menu.png)
+<!-- ![get_menu](https://storage.googleapis.com/odoldotol-image-store/simpleorder_get_menu.png) -->
 
 <br><br>
 
 ## Order Session
-![make_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_make_order.png)
+<!-- ![make_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_make_order.png) -->
 
 <br><br>
 
 ## Place Order
+
+### Place Order
+
 ![place_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_place_order.jpeg)
 
-[order consistency](./server/logic/order.consistency)
+```
+Order Session
+  Order Session ID
+  Store State
+Placement Session
+  Order ID
+Payment Session
+  Payment Token
+  Kakaopay TID
+```
+
+<br>
+
+### Approve Order Placement
+
+![approve_order_placement](https://storage.googleapis.com/odoldotol-image-store/simpleorder_approve_order_placement.jpeg)
+
+```
+Response
+Order Approval Message
+  Nickname
+  Order Session
+  Placement Session
+  Payment Session
+```
+
+```
+On Order Approval Message
+  Approve Kakaopay Payment
+  Create Order Aggregate
+  Store Message
+  Order Placed Message
+```
+
+<br>
+
+[order_consistency](./server/logic/order.consistency)  
 [detail](./server/logic/customer/order.place.v2)  
 
 <br><br>
 
-## Alert Order Ready
-![alert_order_ready](https://storage.googleapis.com/odoldotol-image-store/simpleorder_alert_order_ready.png)
-
-Alert Order Ready 스트림 사용
+## Alert
+<!-- ![alert_order_ready](https://storage.googleapis.com/odoldotol-image-store/simpleorder_alert_order_ready.png) -->
 
 <br><br>
 
@@ -83,17 +139,14 @@ Store Client
 <br><br>
 
 ## Get Order
-![get_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_get_order.png)
+<!-- ![get_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_get_order.png) -->
 
-ordering 의 각 CREATE, UPDATE  
-그리고 get order 의 SELECT  
-그리고 accouning batch 의 SELECT, UPDATE  
-가 교착? 경쟁? 하지 않도록 설계함
+Considering CQRS
 
 <br><br>
 
 ## Close Store
-![store_close](https://storage.googleapis.com/odoldotol-image-store/simpleorder_store_close.png)
+<!-- ![store_close](https://storage.googleapis.com/odoldotol-image-store/simpleorder_store_close.png) -->
 
 주문정합성검사 (client, stream)  
 accounting queue 에 day_business_id, 마감시간정보 등 담긴 객체 푸시  

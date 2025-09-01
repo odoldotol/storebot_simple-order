@@ -69,3 +69,18 @@ https://developers.kakaopay.com/docs/payment/online/single-payment#payment-appro
 
 ## Response Body Payload
 https://developers.kakaopay.com/docs/payment/online/single-payment#payment-approve-response-body
+
+
+
+
+
+---
+
+
+결제준비 이후 승인까지의 타임아웃은 있나? 얼마인가?
+유저의 결제인증 타임아웃은 15분 인가?
+동일 유저아이디로는 동시에 두가지 결제가 진행될 수 없을것 같은데 맞나?
+동일 주문아이디로는 동시에 또는 첫번째 결제 승인 이후에 두분째 결제가 진행될 수 없을것 같은데 맞나?
+결제준비 이후 결제준비 취소요청과 결제승인 이후 취소요청은 같은 API 이용하나?
+approval_url 로 redirect 될때 pg_token 을 쿼리스트링으로 전달하는가? 파라미터로 전달하는가?
+approval_url 로 redirect 되어 받은 요청에 대한 응답은 카카오페이 서버와 유저에서 어떤 영향을 미치나?

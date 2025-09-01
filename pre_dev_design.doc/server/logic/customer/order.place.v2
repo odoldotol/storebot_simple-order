@@ -36,6 +36,7 @@ PaymentToken-유저id
 # /kakao-chatbot-skill/order/place
 OrderSession 읽기 (없으면 없음응답, 에러시 실패응답)
 - OrderSession ttl 갱신 (에러시 로깅)
+  OrderSession 무결성 체크
   매장상태 오픈인지 확인 (에러시, 오픈아닐시 실패응답)
 
   - PlacementSession 팬딩이면 *주문중주문처리

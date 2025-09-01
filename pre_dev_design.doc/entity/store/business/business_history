@@ -1,0 +1,10 @@
+# business_history
+
+- PK(business_id, server_at, event_code)
+
+business_id(business.id) [fk]
+
+history_name // preparing, open, break, resume, closing, closed
+
+client_at(timestamp)
+server_at(timestamp)

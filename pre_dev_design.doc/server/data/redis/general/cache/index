@@ -1,0 +1,5 @@
+menu.document - String
+order.store - List
+order.document - String
+user_recent_order.cache - List
+user.cache - String

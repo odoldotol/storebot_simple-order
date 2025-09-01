@@ -34,7 +34,6 @@ order/approval
   세션(OrderSession, OrderPlacementSession, OrderPaymentSession) DEL
 
 결제승인스트림 READ
-  매장스트림 available 확인(재시도시에만?)
   kakaopay결제승인 HTTP
   Order(aggregate) CREATE
   매장스트림에 주문메시지 ADD

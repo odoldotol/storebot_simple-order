@@ -8,6 +8,7 @@
       "@config/*": ["src/config/*"],
       "@kakaoChatbotSkill": ["src/kakaoChatbotSkill/index"],
       "@kakaoChatbotSkill/*": ["src/kakaoChatbotSkill/*"],
+      "@Logger": ["src/logger/index"],
       "@menu/*": ["src/menu/*"],
       "@order/*": ["src/order/*"],
       "@payment": ["src/payment/index"],

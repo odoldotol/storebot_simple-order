@@ -1,101 +1,98 @@
 import { Injectable } from '@nestjs/common';
-import {
-  OrderPaymentSessionService,
-  OrderPlacementSessionService,
-  OrderSessionService
-} from '@order/session';
-import { StoreStateService } from '@store/state';
+import { Loggable } from '@Logger';
+import { OrderSessionService } from '@order/session';
+import { OrderPlacementSessionService } from './session';
+import { PaymentSessionService } from '@payment/session';
 import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
-import { OrderMessageApprovalService } from '@order/message';
-import { OrderPaymentSession, OrderPlacementSession, OrderSession, UserId } from '@common/type';
+import {
+  OrderMessageApprovalFaultService,
+  OrderMessageApprovalService
+} from '@order/message';
+import {
+  Orderable,
+  OrderPlacementSession,
+  PaymentSession,
+  UserId
+} from '@common/type';
 
 @Injectable()
-export class OrderPlacementService {
-
+export class OrderPlacementService
+  extends Loggable
+{
   constructor(
-    private readonly storeStateSrv: StoreStateService,
-    private readonly orderPlacementSessionSrv: OrderPlacementSessionService,
     private readonly orderSessionSrv: OrderSessionService,
-    private readonly orderPaymentSessionSrv: OrderPaymentSessionService,
+    private readonly orderPlacementSessionSrv: OrderPlacementSessionService,
+    private readonly paymentSessionSrv: PaymentSessionService,
     private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService,
-    private readonly orderMessageApprovalSrv: OrderMessageApprovalService
-  ) {}
+    private readonly orderMessageApprovalSrv: OrderMessageApprovalService,
+    private readonly orderMessageApprovalFaultSrv: OrderMessageApprovalFaultService
+  ) {
+    super();
+  }
 
   public async place(userId: UserId): Promise<{
-    orderSession: OrderSession;
-    orderPlacementSession: OrderPlacementSession;
-    orderPaymentSession: OrderPaymentSession;
+    orderable: Orderable;
+    placeable: OrderPlacementSession;
+    payable: PaymentSession;
   }> {
-    const orderSession = await this.orderSessionSrv.getWithRenewTtl(userId);
-
-    if (orderSession === null) {
-      throw new Error(); // Not Found Order Session
-    }
-
-    if ((await this.storeStateSrv.isOpen(orderSession.store_id)) === false) {
-      throw new Error(); // Store Closed
-    }
+    const orderable = await this.orderSessionSrv.getOrderable(userId, true);
 
     if (await this.orderPlacementSessionSrv.isPending()) {
-      return this.placeInPending(userId, orderSession);
+      try {
+        return this.placeInPending(userId, orderable);
+      } catch (e) {
+        this.logger.warn(e);
+      }
     }
 
-    return this.placeNew(userId, orderSession);
+    return this.placeNew(userId, orderable);
   }
 
   private async placeInPending(
     userId: UserId,
-    orderSession: OrderSession
+    orderable: Orderable
   ): Promise<{
-    orderSession: OrderSession;
-    orderPlacementSession: OrderPlacementSession;
-    orderPaymentSession: OrderPaymentSession;
+    orderable: Orderable;
+    placeable: OrderPlacementSession;
+    payable: PaymentSession;
   }> {
-    const orderPlacementSession = await this.orderPlacementSessionSrv.get(userId);
+    const placeable = await this.orderPlacementSessionSrv.getPlaceable(userId);
 
-    if (orderPlacementSession === null) {
-      return this.placeNew(userId, orderSession); // never
-    }
+    const payable = await this.paymentSessionSrv.getPayable(placeable.order_id);
 
-    const orderPaymentSession = await this.orderPaymentSessionSrv.get(orderPlacementSession.order_id);
-
-    if (orderPaymentSession === null) {
-      return this.placeNew(userId, orderSession);
-    }
-
-    if (this.orderSessionSrv.isSame(orderSession, orderPlacementSession, orderPaymentSession) === true) {
+    if (this.orderSessionSrv.areCoherent(orderable, placeable, payable) === true) {
       return {
-        orderSession,
-        orderPlacementSession,
-        orderPaymentSession
+        orderable,
+        placeable,
+        payable
       };
     }
 
-    await this.orderPaymentSessionSrv.destroy(orderPlacementSession.order_id, orderPaymentSession);
+    await this.paymentSessionSrv.destroy(placeable.order_id, payable);
 
-    return this.placeNew(userId, orderSession);
+    return this.placeNew(userId, orderable);
   }
 
   private async placeNew(
     userId: UserId,
-    orderSession: OrderSession
+    orderable: Orderable
   ): Promise<{
-    orderSession: OrderSession;
-    orderPlacementSession: OrderPlacementSession;
-    orderPaymentSession: OrderPaymentSession;
+    orderable: Orderable;
+    placeable: OrderPlacementSession;
+    payable: PaymentSession;
   }> {
-    const orderPlacementSession = await this.orderPlacementSessionSrv.start(userId, orderSession);
+    const placeable = await this.orderPlacementSessionSrv.start(userId, orderable);
 
-    const orderPaymentSession = await this.orderPaymentSessionSrv.start(
+    const payable = await this.paymentSessionSrv.start(
       userId,
-      orderPlacementSession,
-      orderSession
+      placeable,
+      orderable
     );
 
     return {
-      orderSession,
-      orderPlacementSession,
-      orderPaymentSession
+      orderable,
+      placeable,
+      payable
     };
   }
 
@@ -107,50 +104,32 @@ export class OrderPlacementService {
     const result = this.orderPlacementApprovalResponseSrv.response(userId);
 
     try {
-      const orderSession = await this.orderSessionSrv.get(userId);
-      const orderPlacementSession = await this.orderPlacementSessionSrv.get(userId);
+      const orderable = await this.orderSessionSrv.getOrderable(userId);
+      const placeable = await this.orderPlacementSessionSrv.getPlaceable(userId);
+      const payable = await this.paymentSessionSrv.getPayable(placeable.order_id);
 
-      if (orderPlacementSession === null) {
-        throw new Error(); // Not Found OrderPlacement Session
-      }
-
-      const orderPaymentSession = await this.orderPaymentSessionSrv.get(orderPlacementSession.order_id);
-
-      if (orderSession === null) {
-        throw new Error(); // Not Found Order Session
-      }
-
-      const isStoreOpen = await this.storeStateSrv.isOpen(orderSession.store_id);
-
-      if (orderPaymentSession === null) {
-        throw new Error(); // Not Found OrderPayment Session
-      }
-
-      if (this.orderSessionSrv.isSame(orderSession, orderPlacementSession, orderPaymentSession) === false) {
+      if (this.orderSessionSrv.areCoherent(orderable, placeable, payable) === false) {
         throw new Error(); // Order Session Fault
       }
 
-      if (isStoreOpen === false) {
-        this.orderSessionSrv.close(userId).catch(e => this.logger.error(e));
-        throw new Error(); // Store Closed
-      }
-
       await this.orderMessageApprovalSrv.push(
-        orderSession,
-        orderPlacementSession,
-        orderPaymentSession,
+        orderable,
+        placeable,
+        payable,
         pgToken,
         nickname
       );
 
-      this.orderPaymentSessionSrv.close(userId).catch(e => this.logger.error(e));
-      this.orderPlacementSessionSrv.close(userId).catch(e => this.logger.error(e));
-      this.orderSessionSrv.close(userId).catch(e => this.logger.error(e));
+      this.paymentSessionSrv.close(placeable.order_id).catch(e => this.logger.warn(e));
+      this.orderPlacementSessionSrv.close(userId).catch(e => this.logger.warn(e));
+      this.orderSessionSrv.close(userId).catch(e => this.logger.warn(e));
     } catch (error) {
-      this.orderPaymentSessionSrv.destroy(userId)
+      this.paymentSessionSrv.destroy(userId)
       .then(() => this.orderPlacementSessionSrv.close(userId))
-      .catch(e => this.logger.error(e));
-      this.orderMessageApprovalFaultSrv.push(userId, error).catch(e => this.orderPlacementApprovalResponseSrv.error(userId, e));
+      .catch(e => this.logger.error(e)); //
+      
+      this.orderMessageApprovalFaultSrv.push(userId, error)
+      .catch(e => this.orderPlacementApprovalResponseSrv.error(userId, e));
     }
 
     return result;

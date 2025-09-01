@@ -15,14 +15,15 @@ export class OrderPlacementSessionService {
   ) {}
 
   public isPending(): Promise<boolean> {
-    return this.repo.isExists();
+    return this.repo.exists();
   }
 
-  public get(userId: UserId): Promise<OrderPlacementSession | null> {
-    return Promise.resolve({
-      order_session_id: `${Date.now()}-0` as OrderSessionId,
-      order_id: "" as OrderId
-    });
+  public async getPlaceable(userId: UserId): Promise<OrderPlacementSession> {
+    const session = await this.repo.read(userId)
+    if (session === null) {
+      throw new Error(); // NotFoundOrderPlacementSessionException
+    }
+    return session;
   }
 
   public async start(
@@ -33,6 +34,10 @@ export class OrderPlacementSessionService {
       userId,
       this.orderIdSrv.generate(),
       orderSession.order_session_id
-    )
+    );
+  }
+
+  public close(userId: UserId): Promise<void> {
+    return this.repo.delete(userId);
   }
 }

@@ -1,7 +1,7 @@
 import {
-  OrderPaymentSession,
+  PaymentSession,
   OrderPlacementSession,
-  OrderSession
+  Orderable
 } from '@common/type';
 import { Injectable } from '@nestjs/common';
 
@@ -9,9 +9,9 @@ import { Injectable } from '@nestjs/common';
 export class OrderMessageApprovalService {
 
   public async push(
-    orderSession: OrderSession,
+    orderSession: Orderable,
     orderPlacementSession: OrderPlacementSession,
-    orderPaymentSession: OrderPaymentSession,
+    orderPaymentSession: PaymentSession,
     pgToken: string,
     nickname: string
   ): Promise<string> {}

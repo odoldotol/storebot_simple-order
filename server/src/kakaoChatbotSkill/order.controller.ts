@@ -27,4 +27,8 @@ export class KakaoChatbotSkillOrderController {
     await this.orderPlacementSrv.place();
     return this.resOrderBody.placeOrder();
   }
+
+  // .../session
+  // body 에서 addItem, removeItem, addItemOption, ... 동작 명시
+  // 스토어가 바뀔때 처리
 }
