@@ -10,8 +10,9 @@ import {
 } from '@order/message';
 import {
   Orderable,
-  OrderPlacementSession,
-  PaymentSession,
+  OrderAbles,
+  Payable,
+  Placeable,
   UserId
 } from '@common/type';
 
@@ -30,64 +31,42 @@ export class OrderPlacementService
     super();
   }
 
-  public async place(userId: UserId): Promise<{
-    orderable: Orderable;
-    placeable: OrderPlacementSession;
-    payable: PaymentSession;
-  }> {
-    const orderable = await this.orderSessionSrv.getOrderable(userId, true);
-
+  public async place(userId: UserId): Promise<OrderAbles> {
     if (await this.orderPlacementSessionSrv.isPending()) {
+      const placeable = await this.orderPlacementSessionSrv.getPlaceable(userId);
+
       try {
-        return this.placeInPending(userId, orderable);
+        return this.placeInPending(placeable);
       } catch (e) {
         this.logger.warn(e);
       }
     }
 
-    return this.placeNew(userId, orderable);
+    return this.placeNew(userId);
   }
 
-  private async placeInPending(
-    userId: UserId,
-    orderable: Orderable
-  ): Promise<{
-    orderable: Orderable;
-    placeable: OrderPlacementSession;
-    payable: PaymentSession;
-  }> {
-    const placeable = await this.orderPlacementSessionSrv.getPlaceable(userId);
+  private async placeInPending(placeable: Placeable): Promise<OrderAbles> {
+    try {
+      const [orderable, payable] = await Promise.all([
+        this.orderSessionSrv.getOrderable(placeable, true), // @todo - 꼭 placeable 로 찾아야만 하는데 코드에서 강제되지 않는 구현 나뿜, 개선해.
+        this.paymentSessionSrv.getPayable(placeable)
+      ]);
 
-    const payable = await this.paymentSessionSrv.getPayable(placeable.order_id);
-
-    if (this.orderSessionSrv.areCoherent(orderable, placeable, payable) === true) {
       return {
         orderable,
         placeable,
         payable
       };
+    } catch (error) {
+      await this.paymentSessionSrv.destroy(placeable).catch(e => this.logger.error(e));
+      throw error;
     }
-
-    await this.paymentSessionSrv.destroy(placeable.order_id, payable);
-
-    return this.placeNew(userId, orderable);
   }
 
-  private async placeNew(
-    userId: UserId,
-    orderable: Orderable
-  ): Promise<{
-    orderable: Orderable;
-    placeable: OrderPlacementSession;
-    payable: PaymentSession;
-  }> {
-    const placeable = await this.orderPlacementSessionSrv.start(userId, orderable);
-
-    const payable = await this.paymentSessionSrv.start(
-      userId,
-      placeable,
-      orderable
-    );
+  private async placeNew(userId: UserId): Promise<OrderAbles> {
+    const orderable = await this.orderSessionSrv.getOrderable(userId, true);
+    const placeable = await this.orderPlacementSessionSrv.start(orderable);
+    const payable = await this.paymentSessionSrv.start(placeable, orderable);
 
     return {
       orderable,
@@ -101,16 +80,31 @@ export class OrderPlacementService
     pgToken: string,
     nickname: string
   ) {
-    const result = this.orderPlacementApprovalResponseSrv.response(userId);
+    const placeable = await this.orderPlacementSessionSrv.getPlaceable(userId);
+
+    let
+    payable: Payable | undefined = undefined,
+    orderable: Orderable;
 
     try {
-      const orderable = await this.orderSessionSrv.getOrderable(userId);
-      const placeable = await this.orderPlacementSessionSrv.getPlaceable(userId);
-      const payable = await this.paymentSessionSrv.getPayable(placeable.order_id);
+      const [orderableResult, payableResult] = await Promise.allSettled([
+        this.orderSessionSrv.getOrderable(placeable),
+        this.paymentSessionSrv.getPayable(placeable)
+      ]);
 
-      if (this.orderSessionSrv.areCoherent(orderable, placeable, payable) === false) {
-        throw new Error(); // Order Session Fault
+      if (payableResult.status === 'rejected') {
+        throw payableResult.reason;
       }
+
+      if (orderableResult.status === 'rejected') { // orderable 이 실패해도 성공한 payable 할당하고 에러던지기
+        if (payableResult.status === 'fulfilled') {
+          payable = payableResult.value;
+        }
+        throw orderableResult.reason;
+      }
+
+      orderable = orderableResult.value;
+      payable = payableResult.value;
 
       await this.orderMessageApprovalSrv.push(
         orderable,
@@ -119,19 +113,14 @@ export class OrderPlacementService
         pgToken,
         nickname
       );
-
-      this.paymentSessionSrv.close(placeable.order_id).catch(e => this.logger.warn(e));
-      this.orderPlacementSessionSrv.close(userId).catch(e => this.logger.warn(e));
-      this.orderSessionSrv.close(userId).catch(e => this.logger.warn(e));
     } catch (error) {
-      this.paymentSessionSrv.destroy(userId)
-      .then(() => this.orderPlacementSessionSrv.close(userId))
-      .catch(e => this.logger.error(e)); //
-      
-      this.orderMessageApprovalFaultSrv.push(userId, error)
-      .catch(e => this.orderPlacementApprovalResponseSrv.error(userId, e));
+      await this.paymentSessionSrv.destroy(payable ?? placeable)
+      .then(() => this.orderPlacementSessionSrv.close(placeable));
+      throw error;
     }
 
-    return result;
+    this.paymentSessionSrv.close(payable);
+    this.orderPlacementSessionSrv.close(placeable);
+    this.orderSessionSrv.close(orderable);
   }
 }

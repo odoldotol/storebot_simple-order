@@ -5,6 +5,7 @@ import {
   Orderable,
   OrderSession,
   OrderSessionId,
+  Placeable,
   StoreState,
   UserId
 } from '@common/type';
@@ -21,47 +22,72 @@ export class OrderSessionService
   }
 
   /**
-   * - null check
-   * - incomplete check (optional)
-   * - renew ttl or close session
+   * - check null
+   * - check sessionId coherence (if Placeable)
+   * - check incomplete (optional)
    * - check store orderable
+   * - renew ttl or close session
    */
+  public async getOrderable(userId: UserId, complete?: boolean): Promise<Orderable>;
+  public async getOrderable(placeable: Placeable, complete?: boolean): Promise<Orderable>;
   public async getOrderable(
-    userId: UserId,
+    arg: UserId | Placeable,
     complete = false
   ): Promise<Orderable> {
+    const byPlaceable = typeof arg !== "string";
+    const userId = byPlaceable ? arg.user_id : arg;
+
     const session = await this.repo.read(userId);
-    
+
     this.checkNull(session);
 
-    const storeState = await this.storeStateSrv.get(session.store_id);
+    const storeStatePm = this.storeStateSrv.get(session.store_id);
 
+    byPlaceable && this.checkId(session, arg);
     complete && this.validate(session);
+
+    const storeState = await storeStatePm;
 
     this.processByStoreState(storeState, userId);
 
     return {
+      user_id: userId,
       ...session,
       store_state: storeState
     };
   }
 
-  public areCoherent(
-    sessionA: { order_session_id: OrderSessionId },
-    sessionB: { order_session_id: OrderSessionId },
-    sessionC?: { order_session_id: OrderSessionId }
-  ): boolean {
-    return sessionA.order_session_id === sessionB.order_session_id && (!sessionC || sessionA.order_session_id === sessionC.order_session_id);
-  }
-
-  public close(userId: UserId): Promise<void> {
-    return this.repo.delete(userId);
+  public async close(orderable: Orderable): Promise<void> {
+    try {
+      await this.repo.delete(orderable.user_id);
+    } catch (error) {
+      this.logger.warn(error);
+    }
   }
 
   private checkNull(session: OrderSession | null): asserts session is OrderSession {
     if (session === null) {
       throw new Error(); // NotFoundSession
     }
+  }
+
+  private checkId(
+    session: OrderSession,
+    placeable: Placeable
+  ): void {
+    if (placeable.order_session_id !== session.order_session_id) {
+      throw new Error(); // OrderSessionIdFaultException
+    }
+  }
+
+  /**
+   * ### incomplete check
+   * 오더세션 무결성 체크 (메인메뉴, 선택옵션 등등)  
+   * 어느 부분이 미완성인지 IncompleteOrderSessionException 를 던져서 알려줌
+   */
+  private validate(session: OrderSession): OrderSession {
+    // TODO: Implement validation logic
+    return session;
   }
 
   /**
@@ -80,20 +106,8 @@ export class OrderSessionService
       }
     })().catch(e => this.logger.warn(e));
 
-    if (this.storeStateSrv.isOrderable(storeState)) {
-      return;
+    if (this.storeStateSrv.isOrderable(storeState) === false) {
+      throw new Error(storeState); // NotOpenStoreException (storeState 포함)
     }
-
-    throw new Error(storeState); // NotOpenStoreException (storeState 포함)
-  }
-
-  /**
-   * ### incomplete check
-   * 오더세션 무결성 체크 (메인메뉴, 선택옵션 등등)  
-   * 어느 부분이 미완성인지 IncompleteOrderSessionException 를 던져서 알려줌
-   */
-  private validate(session: OrderSession): OrderSession {
-    // TODO: Implement validation logic
-    return session;
   }
 }

@@ -19,6 +19,10 @@ export type OrderPlacementSession = {
   order_id: OrderId;
 }
 
+export type Placeable = OrderPlacementSession & {
+  user_id: UserId;
+};
+
 export type Uuid = string;
 export type Url = string;
 
@@ -26,10 +30,13 @@ export type Url = string;
  * key: order_id
  */
 export type PaymentSession = {
-  order_session_id: OrderSessionId;
   tid: string;
   redirect: Redirect;
   payment_token: Url;
+};
+
+export type Payable = PaymentSession & {
+  order_id: OrderId;
 };
 
 /**
@@ -42,6 +49,7 @@ export type OrderSession = {
 };
 
 export type Orderable = OrderSession & {
+  user_id: UserId;
   store_state: StoreState;
 };
 
@@ -52,6 +60,12 @@ export type StoreState = {
   break_time?: number; // timestamp
   resumed_time?: number; // timestamp
   close_time?: number; // timestamp
+};
+
+export type OrderAbles = {
+  orderable: Orderable;
+  placeable: Placeable;
+  payable: Payable;
 };
 
 /**

@@ -1,13 +1,20 @@
-import { OrderId, OrderSession, Redirect, Url, UserId } from '@common/type';
+import {
+  Orderable,
+  OrderId,
+  OrderSession,
+  Placeable,
+  Redirect,
+  Url,
+  UserId
+} from '@common/type';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class KakaopayPaymentService {
 
   public async ready(
-    orderId: OrderId,
-    userId: UserId,
-    orderSession: OrderSession,
+    placeable: Placeable,
+    orderable: Orderable,
     orderPaymentToken: Url
   ): Promise<{
     tid: string;
