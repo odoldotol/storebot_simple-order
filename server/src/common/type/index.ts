@@ -11,33 +11,27 @@ export type OrderSessionId = `${number}-${number}`;
 export type OrderId = Uuid;
 export type UserId = Uuid;
 
-/**
- * key: user_id
- */
-export type OrderPlacementSession = {
-  order_session_id: OrderSessionId;
-  order_id: OrderId;
-}
-
-export type Placeable = OrderPlacementSession & {
+export type WithUserId = {
   user_id: UserId;
 };
 
 export type Uuid = string;
 export type Url = string;
 
+export type PaymentToken = Url;
+
 /**
- * key: order_id
+ * key: user_id
  */
 export type PaymentSession = {
+  order_id: OrderId;
+  order_session_id: OrderSessionId;
   tid: string;
   redirect: Redirect;
-  payment_token: Url;
+  payment_token: PaymentToken; // to destroy
 };
 
-export type Payable = PaymentSession & {
-  order_id: OrderId;
-};
+export type Payable = PaymentSession & WithUserId;
 
 /**
  * key: user_id
@@ -48,25 +42,18 @@ export type OrderSession = {
   // items
 };
 
-export type Orderable = OrderSession & {
-  user_id: UserId;
-  store_state: StoreState;
-};
+export type Orderable = OrderSession & WithUserId & StoreState;
 
 export type StoreState = {
   business_id: BusinessId;
-  code: StoreStateCode;
-  open_time?: number; // timestamp
-  break_time?: number; // timestamp
-  resumed_time?: number; // timestamp
-  close_time?: number; // timestamp
+  store_state_code: StoreStateCode;
+  store_open_time?: number; // timestamp
+  store_break_time?: number; // timestamp
+  store_resumed_time?: number; // timestamp
+  store_close_time?: number; // timestamp
 };
 
-export type OrderAbles = {
-  orderable: Orderable;
-  placeable: Placeable;
-  payable: Payable;
-};
+export type Placeable = Orderable & Payable;
 
 /**
  * Orderable 관점에서 0 은 ORDERABLE 이외 음수는 ENDED, 양수는 PAUSED  

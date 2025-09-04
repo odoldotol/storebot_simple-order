@@ -1,10 +1,9 @@
-import { OrderPlacementApprovalResponseService } from "@order/placement";
 import {
   OrderMessageApprovalFaultService,
   OrderMessageApprovalService,
   OrderMessagePlacedService
-} from "@order/message";
-import { KakaopayPaymentService } from "@payment";
+} from '@order/message';
+import { KakaopayPaymentService } from '@payment/kakaopay';
 
 export class OrderApprovalService {
 
@@ -15,7 +14,6 @@ export class OrderApprovalService {
     private readonly orderMessageApprovalFaultSrv: OrderMessageApprovalFaultService,
     private readonly orderMessagePlacedSrv: OrderMessagePlacedService,
     private readonly kakaopayPaymentSrv: KakaopayPaymentService,
-    private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService
   ) {
     this.sub = this.orderMessageApprovalSrv.subscribe(); // ?
   }

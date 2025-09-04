@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { OrderPlacementService } from './placement.service';
 import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
-import { OrderMessageApprovalFaultService } from '@order/message';
 import { orderPlacementRouter } from '@common/const';
+import { Payable } from '@common/type';
 
 @Controller(orderPlacementRouter.prefix)
 export class OrderPlacementController {
@@ -15,24 +15,20 @@ export class OrderPlacementController {
   constructor(
     private readonly orderPlacementService: OrderPlacementService,
     private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService,
-    private readonly orderMessageApprovalFaultSrv: OrderMessageApprovalFaultService
   ) {}
 
   @Post(orderPlacementRouter.routes.approveByKakaopay.path)
-  public approveByKakaopay() {
+  public async approveByKakaopay(
     // 파라미터 및 쿼리스트링에서 PaymentToken, pgToken 추출하기
-    // PaymentToken 으로 userId 가져오기
-    // nickname 가져오기
-    const
     pgToken = "",
-    userId = "",
-    nickname = "";
+    // PaymentToken 으로 payable 가져오기 (PaymentSessionService.prototype.getPayable)
+    payable = {} as Payable,
+    // nickname 가져오기
+    nickname = ""
+  ) {
+    const result = this.orderPlacementApprovalResponseSrv.response(payable.user_id);
 
-    const result = this.orderPlacementApprovalResponseSrv.response(userId);
-
-    this.orderPlacementService.approve(userId, pgToken, nickname)
-    .catch(error => this.orderMessageApprovalFaultSrv.push(userId, error))
-    .catch(error => this.orderPlacementApprovalResponseSrv.error(userId, error));
+    await this.orderPlacementService.approve(payable, pgToken, nickname);
 
     return result;
   }

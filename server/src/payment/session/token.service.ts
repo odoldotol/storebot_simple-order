@@ -1,6 +1,10 @@
 import crypto from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { Placeable, Url } from '@common/type';
+import {
+  PaymentToken,
+  UserId,
+  WithUserId,
+} from '@common/type';
 
 @Injectable()
 export class PaymentTokenService {
@@ -17,12 +21,13 @@ export class PaymentTokenService {
    * 12 바이트면 길이 16  
    * 대충 1억건 유지한다고 할때 12바이트면 충돌확율 6.31*10^-14
    */
-  public async generate(placeable: Placeable): Promise<Url> {
+  public async generate(withUserId: WithUserId): Promise<PaymentToken> {
     let retry = 0;
 
     do {
       try {
-        return await this.repo.create(this.generateOpaqueToken(this.bytes), placeable.user_id); // 토큰 중복시 키애러 던져짐
+        const token = this.generateOpaqueToken(this.bytes).toString('base64url') as PaymentToken;
+        return await this.repo.create(token, withUserId.user_id); // 토큰 중복시 키애러 던져짐
       } catch (error) {
         if (++retry < this.retryLimit) {
           // suppose never
@@ -32,11 +37,15 @@ export class PaymentTokenService {
     } while (true);
   }
 
-  public destroy(token: Url): Promise<void> {
+  public destroy(token: PaymentToken): Promise<void> {
     return this.repo.delete(token);
   }
 
-  private generateOpaqueToken(bytes: number): Url {
-    return crypto.randomBytes(bytes).toString('base64url') as Url;
+  public getUserId(token: PaymentToken): Promise<UserId | null> {
+    return this.repo.read(token);
+  }
+
+  private generateOpaqueToken(bytes: number): Buffer {
+    return crypto.randomBytes(bytes);
   }
 }

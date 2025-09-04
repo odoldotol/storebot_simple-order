@@ -6,7 +6,7 @@ Code is the most up-to-date. Documents probably outdated.
 
 ## System
 
-![system](https://storage.googleapis.com/odoldotol-image-store/simpleorder_system.jpeg)
+![system](https://storage.googleapis.com/odoldotol-image-store/simpleorder_system.png)
 
 ### Customer Client
 Kakaotalk Channel Chatbot
@@ -84,40 +84,47 @@ KakaoPay
 
 ### Place Order
 
-![place_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_place_order.jpeg)
+![place_order](https://storage.googleapis.com/odoldotol-image-store/simpleorder_place_order.png)
 
 ```
-Order Session
-  Order Session ID
-  Store State
-Placement Session
-  Order ID
-Payment Session
-  Payment Token
-  Kakaopay TID
+Store State (Mutable, Redis Hash) - 1:store
+
+Order Session (Mutable, Redis JSON) - 1:user
+  order_Session_id (millisecondsTime, sequenceNumber)
+  store_id
+  items
+
+order_id (uuid v7) - primary key
+payment_token (OpaqueToken, base64url) - 1:user
+
+Payment Session (Immutable, Redis String) - 1:user
+	order_id
+	order_Session_id
+  tid (kakaopay)
+  redirect (payment_token)
 ```
 
 <br>
 
 ### Approve Order Placement
 
-![approve_order_placement](https://storage.googleapis.com/odoldotol-image-store/simpleorder_approve_order_placement.jpeg)
+![approve_order_placement](https://storage.googleapis.com/odoldotol-image-store/simpleorder_approve_order_placement.png)
 
 ```
-Response
+Response - Linking HTTP request context to consumer context 
+
 Order Approval Message
-  Nickname
   Order Session
-  Placement Session
   Payment Session
+  Store State
+  Nickname
 ```
 
 ```
 On Order Approval Message
   Approve Kakaopay Payment
   Create Order Aggregate
-  Store Message
-  Order Placed Message
+  Message (Store, Order Placed)
 ```
 
 <br>

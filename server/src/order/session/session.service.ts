@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Loggable } from '@Logger';
 import { StoreStateService } from '@store/state';
 import {
   Orderable,
   OrderSession,
-  OrderSessionId,
+  Payable,
   Placeable,
   StoreState,
-  UserId
+  UserId,
+  WithUserId
 } from '@common/type';
 
 @Injectable()
@@ -23,43 +24,90 @@ export class OrderSessionService
 
   /**
    * - check null
-   * - check sessionId coherence (if Placeable)
-   * - check incomplete (optional)
+   * - check incomplete
    * - check store orderable
    * - renew ttl or close session
    */
-  public async getOrderable(userId: UserId, complete?: boolean): Promise<Orderable>;
-  public async getOrderable(placeable: Placeable, complete?: boolean): Promise<Orderable>;
-  public async getOrderable(
-    arg: UserId | Placeable,
-    complete = false
-  ): Promise<Orderable> {
-    const byPlaceable = typeof arg !== "string";
-    const userId = byPlaceable ? arg.user_id : arg;
-
+  public async getOrderable(userId: UserId): Promise<Orderable> {
     const session = await this.repo.read(userId);
 
     this.checkNull(session);
 
-    const storeStatePm = this.storeStateSrv.get(session.store_id);
+    this.validate(session);
 
-    byPlaceable && this.checkId(session, arg);
-    complete && this.validate(session);
-
-    const storeState = await storeStatePm;
+    const storeState = await this.storeStateSrv.get(session.store_id);
 
     this.processByStoreState(storeState, userId);
 
     return {
       user_id: userId,
       ...session,
-      store_state: storeState
+      ...storeState
     };
   }
 
-  public async close(orderable: Orderable): Promise<void> {
+  /**
+   * - check null
+   * - check sessionId coherence
+   * - check complete (selective)
+   * - check store orderable
+   * - renew ttl or close session
+   * 
+   * ### options default
+   * - checkComplete: true
+   * - checkIdLast: false
+   */
+  public async getPlaceable(
+    payable: Payable,
+    options?: CheckOptions
+  ): Promise<Placeable> {
+    options = {
+      checkComplete: true,
+      checkIdLast: false,
+      ...options
+    };
+
+    const userId = payable.user_id;
+
+    const session = await this.repo.read(userId);
+
+    this.checkNull(session);
+    
+    if (options.checkIdLast === false) {
+      this.checkId(session, payable);
+    }
+
+    if (options.checkComplete) {
+      this.validate(session);
+    }
+
+    const storeState = await this.storeStateSrv.get(session.store_id);
+
+    this.processByStoreState(storeState, userId);
+
+    const orderable = {
+      user_id: userId,
+      ...session,
+      ...storeState
+    };
+
+    if (options.checkIdLast) {
+      this.checkId(orderable, payable);
+    }
+
+    return {
+      ...orderable,
+      ...payable
+    };
+  }
+
+  public async close(userId: UserId): Promise<void>;
+  public async close(withUserId: WithUserId): Promise<void>;
+  public async close(arg: UserId | WithUserId): Promise<void> {
+    const userId = typeof arg === 'string' ? arg : arg.user_id;
+
     try {
-      await this.repo.delete(orderable.user_id);
+      await this.repo.delete(userId);
     } catch (error) {
       this.logger.warn(error);
     }
@@ -67,16 +115,19 @@ export class OrderSessionService
 
   private checkNull(session: OrderSession | null): asserts session is OrderSession {
     if (session === null) {
-      throw new Error(); // NotFoundSession
+      throw new NotFoundOrderSessionException();
     }
   }
 
+  /**
+   * throw OrderableIdFaultException or OrderSessionIdFaultException
+   */
   private checkId(
-    session: OrderSession,
-    placeable: Placeable
+    arg: OrderSession | Orderable,
+    payable: Payable,
   ): void {
-    if (placeable.order_session_id !== session.order_session_id) {
-      throw new Error(); // OrderSessionIdFaultException
+    if (payable.order_session_id !== arg.order_session_id) {
+      throw "store_state_code" in arg ? new OrderableSessionIdFaultException(arg) : new OrderSessionIdFaultException(arg);
     }
   }
 
@@ -87,6 +138,7 @@ export class OrderSessionService
    */
   private validate(session: OrderSession): OrderSession {
     // TODO: Implement validation logic
+    throw new IncompleteOrderSessionException({});
     return session;
   }
 
@@ -107,7 +159,56 @@ export class OrderSessionService
     })().catch(e => this.logger.warn(e));
 
     if (this.storeStateSrv.isOrderable(storeState) === false) {
-      throw new Error(storeState); // NotOpenStoreException (storeState 포함)
+      throw new NotOpenStoreException(storeState);
     }
+  }
+}
+
+type CheckOptions = {
+  checkComplete?: boolean;
+  checkIdLast?: boolean;
+};
+
+export class OrderSessionIdFaultException
+  extends BadRequestException
+{
+  constructor(
+    public readonly orderSession: OrderSession,
+  ) {
+    super(""); //
+  }
+}
+
+export class OrderableSessionIdFaultException
+  extends BadRequestException
+{
+  constructor(
+    public readonly orderable: Orderable,
+  ) {
+    super(""); //
+  }
+}
+
+export class NotFoundOrderSessionException
+  extends BadRequestException
+{
+  constructor() {
+    super();
+  }
+}
+
+export class NotOpenStoreException
+  extends BadRequestException
+{
+  constructor(storeState: StoreState) {
+    super();
+  }
+}
+
+export class IncompleteOrderSessionException
+  extends BadRequestException
+{
+  constructor(obj: any) {
+    super();
   }
 }
