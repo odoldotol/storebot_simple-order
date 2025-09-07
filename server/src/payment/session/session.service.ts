@@ -19,7 +19,12 @@ export class PaymentSessionService
 {
 
   constructor(
-    private readonly repo: { read(orderId: OrderId): Promise<PaymentSession | null>, create(...args: any[]): Promise<PaymentSession> }, // PaymentSessionRepository,
+    private readonly repo: {
+      read(orderId: OrderId): Promise<PaymentSession | null>;
+      create(...args: any[]): Promise<PaymentSession>;
+      delete(userId: UserId): Promise<void>;
+      exists(userId: UserId): Promise<boolean>;
+    }, // PaymentSessionRepository,
     private readonly paymentTokenSrv: PaymentTokenService,
     private readonly kakaopayPaymentSrv: KakaopayPaymentService,
   ) {
@@ -35,14 +40,13 @@ export class PaymentSessionService
   public async getPayable(paymentToken: PaymentToken): Promise<Payable>;
   public async getPayable(arg: UserId | PaymentToken): Promise<Payable> {
     let userId: UserId;
+    let orderId: OrderId | undefined = undefined;
 
     if (arg.length === 16) { // @Todo - UserId 인지 PaymentToken 인지 길이가 16인지로 Identify 한다는것이 나쁨.
-      userId = await this.paymentTokenSrv.getUserId(arg).then(res => {
-        if (res === null) {
-          throw new Error(); // PaymentTokenFaultException
-        }
-        return res;
-      });
+      ({
+        userId,
+        orderId
+      } = await this.paymentTokenSrv.getIds(arg));
     } else {
       userId = arg;
     }
@@ -51,6 +55,10 @@ export class PaymentSessionService
 
     if (session === null) {
       throw new Error(); // NotFoundPaymentSessionException
+    }
+
+    if (orderId !== undefined && session.order_id !== orderId) {
+      throw new Error(); // PaymentSessionFaultException
     }
 
     return {
@@ -63,11 +71,11 @@ export class PaymentSessionService
     orderId: OrderId,
     orderable: Orderable
   ): Promise<Placeable> {
-    if (this.repo.exists(orderId)) {
+    if (await this.repo.exists(orderId)) {
       throw new Error(); // PaymentSessionFaultException
     }
 
-    const paymentToken = await this.paymentTokenSrv.generate(orderable);
+    const paymentToken = await this.paymentTokenSrv.generate(orderable.user_id, orderId);
 
     const {
       tid,
