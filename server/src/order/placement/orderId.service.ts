@@ -11,6 +11,8 @@ export class OrderIdService {
 
   constructor() {
     // 일정시간(1s?)마다 A,B 바꿔가며 비우면 될듯. 대신 A,B 두 곳에서 타임스탬프 검사를 해야하는 오버헤드
+    this.mapA;
+    this.mapB;
   }
 
   public generate(): OrderId {

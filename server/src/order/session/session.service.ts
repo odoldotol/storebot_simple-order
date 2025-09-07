@@ -16,7 +16,11 @@ export class OrderSessionService
   extends Loggable
 {
   constructor(
-    private readonly repo: { read(userId: UserId): Promise<OrderSession | null>, renewTtl(userId: UserId): Promise<void> }, // OrderSessionRepository
+    private readonly repo: {
+      read(userId: UserId): Promise<OrderSession | null>;
+      renewTtl(userId: UserId): Promise<void>;
+      delete(userId: UserId): Promise<void>;
+    }, // OrderSessionRepository
     private readonly storeStateSrv: StoreStateService
   ) {
     super();
@@ -138,7 +142,7 @@ export class OrderSessionService
    */
   private validate(session: OrderSession): OrderSession {
     // TODO: Implement validation logic
-    throw new IncompleteOrderSessionException({});
+    // throw new IncompleteOrderSessionException({});
     return session;
   }
 
@@ -200,7 +204,9 @@ export class NotFoundOrderSessionException
 export class NotOpenStoreException
   extends BadRequestException
 {
-  constructor(storeState: StoreState) {
+  constructor(
+    public readonly storeState: StoreState
+  ) {
     super();
   }
 }
@@ -208,7 +214,9 @@ export class NotOpenStoreException
 export class IncompleteOrderSessionException
   extends BadRequestException
 {
-  constructor(obj: any) {
+  constructor(
+    public readonly incomplete: any
+  ) {
     super();
   }
 }

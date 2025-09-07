@@ -7,7 +7,7 @@ async function bootstrap() {
 
   app.useLogger(app.get(DefaultLogger));
 
-  // await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000);
 }
 
 bootstrap();

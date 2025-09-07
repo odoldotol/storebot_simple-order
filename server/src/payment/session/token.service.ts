@@ -44,7 +44,7 @@ export class PaymentTokenService {
         token = this.generateOpaqueToken(this.bytes).toString('base64url') as PaymentToken;
         await this.repo.create(token, userId, orderId); // 토큰 중복시 키애러 던져짐
         return token;
-      } catch (error) {
+      } catch (error: any) {
         if (error !== 'Duplicate key error') { // @Todo
           throw new PaymentTokenFaultException(error);
         }

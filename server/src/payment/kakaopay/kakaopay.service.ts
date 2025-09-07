@@ -1,16 +1,19 @@
 import {
   Orderable,
-  OrderId,
-  OrderSession,
+  // OrderId,
+  // OrderSession,
   Redirect,
   Url,
-  UserId
+  // UserId
 } from '@common/type';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class KakaopayPaymentService {
 
+  /**
+   * @Todo - Impl
+   */
   public async ready(
     orderable: Orderable,
     orderPaymentToken: Url
@@ -18,6 +21,9 @@ export class KakaopayPaymentService {
     tid: string;
     redirect: Redirect;
   }> {
+    orderable;
+    orderPaymentToken;
+
     return {
       tid: "",
       redirect: {
@@ -34,5 +40,10 @@ export class KakaopayPaymentService {
 
   public async order() {}
 
-  public async cancel(tid: string) {}
+  /**
+   * @Todo - impl
+   */
+  public async cancel(tid: string) {
+    tid;
+  }
 }

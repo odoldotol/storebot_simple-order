@@ -16,8 +16,13 @@ export class OrderApprovalService {
     private readonly kakaopayPaymentSrv: KakaopayPaymentService,
   ) {
     this.sub = this.orderMessageApprovalSrv.subscribe(); // ?
+    this.sub; //
+    this.approve;
   }
 
+  /**
+   * @Todo - Imple
+   */
   private approve(
     id: string,
     message: any
@@ -40,6 +45,13 @@ Store 스트림 캐시에 주문서id 중복유무 확인하고 중복이면 스
   - *OrderPlaced 메시지 푸시 (이 메시지의 처리는 멱등성 보장되어야함) (에러시 로깅, 메시지 ACK 하지 않음)
     - 메시지 ACK
 */
+
+    id;
+    message;
+
+    this.kakaopayPaymentSrv;
+    this.orderMessagePlacedSrv;
+    this.orderMessageApprovalFaultSrv;
   }
 
 }

@@ -9,11 +9,7 @@ export class KakaoChatbotSkillResponseOrderBody
 {
   constructor() {}
 
-  public checkOrderSession(): SkillResponseV2 {
-    return {};
-  }
-
-  public placeOrder(): SkillResponseV2 {
+  public place(): SkillResponseV2 {
     return {};
   }
 

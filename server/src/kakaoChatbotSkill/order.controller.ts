@@ -1,7 +1,7 @@
 import {
   Controller,
-  HttpCode,
-  HttpStatus,
+  // HttpCode,
+  // HttpStatus,
   Post
 } from '@nestjs/common';
 import {
@@ -23,9 +23,11 @@ export class KakaoChatbotSkillOrderController {
   ) {}
 
   @Post(kakaoChatbotSkillOrderRouter.routes.place.path)
-  public async place(): Promise<SkillResponseV2> {
-    await this.orderPlacementSrv.place();
-    return this.resOrderBody.placeOrder();
+  public async place(
+    userId: string // @Todo - Pipe
+  ): Promise<SkillResponseV2> {
+    await this.orderPlacementSrv.place(userId);
+    return this.resOrderBody.place();
   }
 
   // .../session
