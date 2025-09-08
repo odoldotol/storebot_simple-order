@@ -1,24 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { Loggable } from '@Logger';
-import { IncompleteOrderSessionException, NotFoundOrderSessionException, NotOpenStoreException, OrderableSessionIdFaultException, OrderSessionService } from '@order/session';
+import {
+  IncompleteOrderSessionException,
+  NotFoundOrderSessionException,
+  NotOpenStoreException,
+  OrderableSessionIdFaultException,
+  OrderSessionService,
+} from '@order/session';
 import { PaymentSessionService } from '@payment/session';
 import { OrderIdService } from './orderId.service';
 import {
   OrderMessageApprovalFaultService,
-  OrderMessageApprovalService
+  OrderMessageApprovalService,
 } from '@order/message';
 import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
-import {
-  Orderable,
-  Payable,
-  Placeable,
-  UserId
-} from '@common/type';
+import { Orderable, Payable, Placeable, UserId } from '@common/type';
 
 @Injectable()
-export class OrderPlacementService
-  extends Loggable
-{
+export class OrderPlacementService extends Loggable {
   constructor(
     private readonly orderSessionSrv: OrderSessionService,
     private readonly paymentSessionSrv: PaymentSessionService,
@@ -26,8 +25,6 @@ export class OrderPlacementService
     private readonly orderMessageApprovalSrv: OrderMessageApprovalService,
     private readonly orderMessageApprovalFaultSrv: OrderMessageApprovalFaultService,
     private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService,
-    
-    
   ) {
     super();
   }
@@ -45,11 +42,19 @@ export class OrderPlacementService
 
     try {
       payable = await this.paymentSessionSrv.getPayable(userId);
-      return await this.orderSessionSrv.getPlaceable(payable, { checkIdLast: true });
+      return await this.orderSessionSrv.getPlaceable(payable, {
+        checkIdLast: true,
+      });
     } catch (error) {
-      await this.paymentSessionSrv.destroy(payable ?? userId).catch(e => this.logger.error(e)); //
+      await this.paymentSessionSrv
+        .destroy(payable ?? userId)
+        .catch(e => this.logger.error(e)); //
 
-      if (error instanceof NotFoundOrderSessionException || error instanceof IncompleteOrderSessionException || error instanceof NotOpenStoreException) {
+      if (
+        error instanceof NotFoundOrderSessionException ||
+        error instanceof IncompleteOrderSessionException ||
+        error instanceof NotOpenStoreException
+      ) {
         throw error;
       }
 
@@ -85,23 +90,24 @@ export class OrderPlacementService
   public async approve(
     payable: Payable,
     pgToken: string,
-    nickname: string
+    nickname: string,
   ): Promise<void> {
     let placeable: Placeable | undefined = undefined;
 
     try {
-      placeable = await this.orderSessionSrv.getPlaceable(payable, { checkComplete: false });
+      placeable = await this.orderSessionSrv.getPlaceable(payable, {
+        checkComplete: false,
+      });
 
-      await this.orderMessageApprovalSrv.push(
-        placeable,
-        pgToken,
-        nickname
-      );
+      await this.orderMessageApprovalSrv.push(placeable, pgToken, nickname);
     } catch (error) {
       await Promise.allSettled([
         this.paymentSessionSrv.destroy(payable), //
-        this.orderMessageApprovalFaultSrv.push(payable.user_id, error)
-        .catch(e => this.orderPlacementApprovalResponseSrv.error(payable.user_id, e))
+        this.orderMessageApprovalFaultSrv
+          .push(payable.user_id, error)
+          .catch(e =>
+            this.orderPlacementApprovalResponseSrv.error(payable.user_id, e),
+          ),
       ]);
 
       return;
@@ -109,7 +115,7 @@ export class OrderPlacementService
 
     await Promise.all([
       this.paymentSessionSrv.close(placeable),
-      this.orderSessionSrv.close(placeable)
+      this.orderSessionSrv.close(placeable),
     ]);
   }
 }

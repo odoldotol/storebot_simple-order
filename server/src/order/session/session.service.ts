@@ -8,20 +8,18 @@ import {
   Placeable,
   StoreState,
   UserId,
-  WithUserId
+  WithUserId,
 } from '@common/type';
 
 @Injectable()
-export class OrderSessionService
-  extends Loggable
-{
+export class OrderSessionService extends Loggable {
   constructor(
     private readonly repo: {
       read(userId: UserId): Promise<OrderSession | null>;
       renewTtl(userId: UserId): Promise<void>;
       delete(userId: UserId): Promise<void>;
     }, // OrderSessionRepository
-    private readonly storeStateSrv: StoreStateService
+    private readonly storeStateSrv: StoreStateService,
   ) {
     super();
   }
@@ -46,7 +44,7 @@ export class OrderSessionService
     return {
       user_id: userId,
       ...session,
-      ...storeState
+      ...storeState,
     };
   }
 
@@ -56,19 +54,19 @@ export class OrderSessionService
    * - check complete (selective)
    * - check store orderable
    * - renew ttl or close session
-   * 
+   *
    * ### options default
    * - checkComplete: true
    * - checkIdLast: false
    */
   public async getPlaceable(
     payable: Payable,
-    options?: CheckOptions
+    options?: CheckOptions,
   ): Promise<Placeable> {
     options = {
       checkComplete: true,
       checkIdLast: false,
-      ...options
+      ...options,
     };
 
     const userId = payable.user_id;
@@ -76,7 +74,7 @@ export class OrderSessionService
     const session = await this.repo.read(userId);
 
     this.checkNull(session);
-    
+
     if (options.checkIdLast === false) {
       this.checkId(session, payable);
     }
@@ -92,7 +90,7 @@ export class OrderSessionService
     const orderable = {
       user_id: userId,
       ...session,
-      ...storeState
+      ...storeState,
     };
 
     if (options.checkIdLast) {
@@ -101,7 +99,7 @@ export class OrderSessionService
 
     return {
       ...orderable,
-      ...payable
+      ...payable,
     };
   }
 
@@ -117,7 +115,9 @@ export class OrderSessionService
     }
   }
 
-  private checkNull(session: OrderSession | null): asserts session is OrderSession {
+  private checkNull(
+    session: OrderSession | null,
+  ): asserts session is OrderSession {
     if (session === null) {
       throw new NotFoundOrderSessionException();
     }
@@ -126,18 +126,17 @@ export class OrderSessionService
   /**
    * throw OrderableIdFaultException or OrderSessionIdFaultException
    */
-  private checkId(
-    arg: OrderSession | Orderable,
-    payable: Payable,
-  ): void {
+  private checkId(arg: OrderSession | Orderable, payable: Payable): void {
     if (payable.order_session_id !== arg.order_session_id) {
-      throw "store_state_code" in arg ? new OrderableSessionIdFaultException(arg) : new OrderSessionIdFaultException(arg);
+      throw 'store_state_code' in arg
+        ? new OrderableSessionIdFaultException(arg)
+        : new OrderSessionIdFaultException(arg);
     }
   }
 
   /**
    * ### incomplete check
-   * 오더세션 무결성 체크 (메인메뉴, 선택옵션 등등)  
+   * 오더세션 무결성 체크 (메인메뉴, 선택옵션 등등) \
    * 어느 부분이 미완성인지 IncompleteOrderSessionException 를 던져서 알려줌
    */
   private validate(session: OrderSession): OrderSession {
@@ -150,10 +149,7 @@ export class OrderSessionService
    * - renew ttl or close session
    * - check orderable
    */
-  private processByStoreState(
-    storeState: StoreState,
-    userId: UserId,
-  ): void {
+  private processByStoreState(storeState: StoreState, userId: UserId): void {
     (() => {
       if (this.storeStateSrv.isBusinessActive(storeState)) {
         return this.repo.renewTtl(userId);
@@ -173,50 +169,32 @@ type CheckOptions = {
   checkIdLast?: boolean;
 };
 
-export class OrderSessionIdFaultException
-  extends BadRequestException
-{
-  constructor(
-    public readonly orderSession: OrderSession,
-  ) {
-    super(""); //
+export class OrderSessionIdFaultException extends BadRequestException {
+  constructor(public readonly orderSession: OrderSession) {
+    super(''); //
   }
 }
 
-export class OrderableSessionIdFaultException
-  extends BadRequestException
-{
-  constructor(
-    public readonly orderable: Orderable,
-  ) {
-    super(""); //
+export class OrderableSessionIdFaultException extends BadRequestException {
+  constructor(public readonly orderable: Orderable) {
+    super(''); //
   }
 }
 
-export class NotFoundOrderSessionException
-  extends BadRequestException
-{
+export class NotFoundOrderSessionException extends BadRequestException {
   constructor() {
     super();
   }
 }
 
-export class NotOpenStoreException
-  extends BadRequestException
-{
-  constructor(
-    public readonly storeState: StoreState
-  ) {
+export class NotOpenStoreException extends BadRequestException {
+  constructor(public readonly storeState: StoreState) {
     super();
   }
 }
 
-export class IncompleteOrderSessionException
-  extends BadRequestException
-{
-  constructor(
-    public readonly incomplete: any
-  ) {
+export class IncompleteOrderSessionException extends BadRequestException {
+  constructor(public readonly incomplete: any) {
     super();
   }
 }

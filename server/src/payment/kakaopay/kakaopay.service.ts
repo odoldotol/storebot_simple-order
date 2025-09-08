@@ -10,13 +10,12 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class KakaopayPaymentService {
-
   /**
    * @Todo - Impl
    */
   public async ready(
     orderable: Orderable,
-    orderPaymentToken: Url
+    orderPaymentToken: Url,
   ): Promise<{
     tid: string;
     redirect: Redirect;
@@ -25,14 +24,14 @@ export class KakaopayPaymentService {
     orderPaymentToken;
 
     return {
-      tid: "",
+      tid: '',
       redirect: {
-        next_redirect_app_url: "https://kakao.com/redirect",
-        next_redirect_mobile_url: "https://kakao.com/redirect",
-        next_redirect_pc_url: "https://kakao.com/redirect",
-        android_app_scheme: "kakao${APP_KEY}://kakaopay",
-        ios_app_scheme: "kakao${APP_KEY}://kakaopay",
-      }
+        next_redirect_app_url: 'https://kakao.com/redirect',
+        next_redirect_mobile_url: 'https://kakao.com/redirect',
+        next_redirect_pc_url: 'https://kakao.com/redirect',
+        android_app_scheme: 'kakao${APP_KEY}://kakaopay',
+        ios_app_scheme: 'kakao${APP_KEY}://kakaopay',
+      },
     };
   }
 

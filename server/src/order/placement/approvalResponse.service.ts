@@ -4,7 +4,6 @@ import { UserId } from '@common/type';
 
 @Injectable()
 export class OrderPlacementApprovalResponseService {
-
   // @Todo - Order Approval, ApprovalFault Message 구독하고 처리해야함
 
   private readonly map = new Map<UserId, R.Subject<any>>(); // OrderPlacementApprovalResponseMap

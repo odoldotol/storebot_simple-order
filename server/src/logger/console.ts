@@ -1,13 +1,8 @@
-import {
-  Injectable,
-  ConsoleLogger as NestConsoleLogger
-} from '@nestjs/common';
+import { Injectable, ConsoleLogger as NestConsoleLogger } from '@nestjs/common';
 
 @Injectable()
-export class ConsoleLogger
-  extends NestConsoleLogger
-{
-  constructor(context = "Unknown") {
+export class ConsoleLogger extends NestConsoleLogger {
+  constructor(context = 'Unknown') {
     super(context);
   }
 

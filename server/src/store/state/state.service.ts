@@ -1,15 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import {
-  StoreId,
-  StoreState,
-  StoreStateCode
-} from '@common/type';
+import { StoreId, StoreState, StoreStateCode } from '@common/type';
 
 @Injectable()
 export class StoreStateService {
-
   constructor(
-    private readonly repo: { read(storeId: StoreId): Promise<StoreState> } // StoreStateRepository
+    private readonly repo: { read(storeId: StoreId): Promise<StoreState> }, // StoreStateRepository
   ) {}
 
   public get(storeId: StoreId): Promise<StoreState> {

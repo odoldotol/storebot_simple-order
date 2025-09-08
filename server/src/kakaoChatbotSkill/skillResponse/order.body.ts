@@ -12,5 +12,4 @@ export class KakaoChatbotSkillResponseOrderBody
   public place(): SkillResponseV2 {
     return {};
   }
-
 }

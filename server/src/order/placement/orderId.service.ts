@@ -4,7 +4,6 @@ import { v7 as uuidV7 } from 'uuid';
 
 @Injectable()
 export class OrderIdService {
-
   // 같은 타임스템프에 한해 중복검사
   private readonly mapA = new Map<number, Set<OrderId>>();
   private readonly mapB = new Map<number, Set<OrderId>>();

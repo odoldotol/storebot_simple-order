@@ -1,11 +1,11 @@
 /**
- * \<timestamp\>-\<version\>  
- * timestamp: Date.now();  
- * version: 0 부터 시작해서 수정할때마다 INCR  
+ * \<timestamp\>-\<version\> \
+ * timestamp: Date.now(); \
+ * version: 0 부터 시작해서 수정할때마다 INCR
  *
- * deserialize: id(<timestamp>-<version>) -> { timestamp, version }  
- * timestamp: Number(id.slice(0, 13))  
- * version: Number(id.slice(14))  
+ * deserialize: id(<timestamp>-<version>) -> { timestamp, version } \
+ * timestamp: Number(id.slice(0, 13)) \
+ * version: Number(id.slice(14))
  */
 export type OrderSessionId = `${number}-${number}`;
 export type OrderId = Uuid;
@@ -56,8 +56,8 @@ export type StoreState = {
 export type Placeable = Orderable & Payable;
 
 /**
- * Orderable 관점에서 0 은 ORDERABLE 이외 음수는 ENDED, 양수는 PAUSED  
- * Business 관점에서 음수는 INACTIVE, 그외는 ACTIVE  
+ * Orderable 관점에서 0 은 ORDERABLE 이외 음수는 ENDED, 양수는 PAUSED \
+ * Business 관점에서 음수는 INACTIVE, 그외는 ACTIVE
  */
 export const enum StoreStateCode {
   CLOSED = -2,

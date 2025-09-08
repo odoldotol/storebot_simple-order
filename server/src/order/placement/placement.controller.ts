@@ -2,7 +2,7 @@ import {
   Controller,
   // HttpCode,
   // HttpStatus,
-  Post
+  Post,
 } from '@nestjs/common';
 import { OrderPlacementService } from './placement.service';
 import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
@@ -11,7 +11,6 @@ import { Payable } from '@common/type';
 
 @Controller(orderPlacementRouter.prefix)
 export class OrderPlacementController {
-
   constructor(
     private readonly orderPlacementService: OrderPlacementService,
     private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService,
@@ -20,13 +19,15 @@ export class OrderPlacementController {
   @Post(orderPlacementRouter.routes.approveByKakaopay.path)
   public async approveByKakaopay(
     // 파라미터 및 쿼리스트링에서 PaymentToken, pgToken 추출하기
-    pgToken = "",
+    pgToken = '',
     // PaymentToken 으로 payable 가져오기 (PaymentSessionService.prototype.getPayable)
     payable = {} as Payable,
     // nickname 가져오기
-    nickname = ""
+    nickname = '',
   ) {
-    const result = this.orderPlacementApprovalResponseSrv.response(payable.user_id);
+    const result = this.orderPlacementApprovalResponseSrv.response(
+      payable.user_id,
+    );
 
     await this.orderPlacementService.approve(payable, pgToken, nickname);
 
@@ -38,5 +39,4 @@ export class OrderPlacementController {
 
   @Post(orderPlacementRouter.routes.failByKakaopay.path)
   public failByKakaopay() {}
-
 }

@@ -6,12 +6,7 @@ import { OrderSessionIdService } from './sessionId.service';
   imports: [
     // redis
   ],
-  providers: [
-    OrderSessionService,
-    OrderSessionIdService,
-  ],
-  exports: [
-    OrderSessionService,
-  ],
+  providers: [OrderSessionService, OrderSessionIdService],
+  exports: [OrderSessionService],
 })
 export class OrderSessionModule {}

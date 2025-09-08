@@ -1,10 +1,6 @@
 import crypto from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import {
-  OrderId,
-  PaymentToken,
-  UserId,
-} from '@common/type';
+import { OrderId, PaymentToken, UserId } from '@common/type';
 
 /**
  * UserId 와 OrderId 를 문자열 그대로 Redis 에 String 으로 저장하는데 메모리를 절약할 여지가 있음.
@@ -13,7 +9,6 @@ import {
  */
 @Injectable()
 export class PaymentTokenService {
-
   private readonly bytes = 12;
   private readonly retryLimit = 100;
 
@@ -22,35 +17,41 @@ export class PaymentTokenService {
   constructor(
     private readonly repo: {
       read(token: PaymentToken): Promise<string | null>;
-      create(token: PaymentToken, userId: UserId, orderId: OrderId): Promise<void>;
+      create(
+        token: PaymentToken,
+        userId: UserId,
+        orderId: OrderId,
+      ): Promise<void>;
       delete(token: PaymentToken): Promise<void>;
     }, // PaymentTokenRepository
   ) {}
 
   /**
    * OpaqueToken, base64url
-   * 12 바이트면 길이 16  
+   * 12 바이트면 길이 16
    * 대충 1억건 유지한다고 할때 12바이트면 충돌확율 6.31*10^-14
    */
   public async generate(
     userId: UserId,
-    orderId: OrderId
+    orderId: OrderId,
   ): Promise<PaymentToken> {
     let retry = 0;
     let token: PaymentToken;
 
     do {
       try {
-        token = this.generateOpaqueToken(this.bytes).toString('base64url') as PaymentToken;
+        token = this.generateOpaqueToken(this.bytes).toString(
+          'base64url',
+        ) as PaymentToken;
         await this.repo.create(token, userId, orderId); // 토큰 중복시 키애러 던져짐
         return token;
       } catch (error: any) {
-        if (error !== 'Duplicate key error') { // @Todo
+        if (error !== /* @Todo */ 'Duplicate key error') {
           throw new PaymentTokenFaultException(error);
         }
       }
     } while (++retry < this.retryLimit);
-    
+
     // suppose never
     throw new PaymentTokenFaultException('Exceed retry limit');
   }
@@ -59,7 +60,9 @@ export class PaymentTokenService {
     return this.repo.delete(token);
   }
 
-  public async getIds(token: PaymentToken): Promise<{ userId: UserId, orderId: OrderId }> {
+  public async getIds(
+    token: PaymentToken,
+  ): Promise<{ userId: UserId; orderId: OrderId }> {
     const value = await this.repo.read(token);
 
     if (value === null) {
@@ -68,7 +71,7 @@ export class PaymentTokenService {
 
     return {
       userId: value.slice(0, this.userIdLength),
-      orderId: value.slice(this.userIdLength + 1)
+      orderId: value.slice(this.userIdLength + 1),
     };
   }
 

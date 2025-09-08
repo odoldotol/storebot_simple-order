@@ -10,14 +10,11 @@ import {
   PaymentToken,
   Placeable,
   UserId,
-  WithUserId
-} from "@common/type";
+  WithUserId,
+} from '@common/type';
 
 @Injectable()
-export class PaymentSessionService
-  extends Loggable
-{
-
+export class PaymentSessionService extends Loggable {
   constructor(
     private readonly repo: {
       read(orderId: OrderId): Promise<PaymentSession | null>;
@@ -42,11 +39,9 @@ export class PaymentSessionService
     let userId: UserId;
     let orderId: OrderId | undefined = undefined;
 
-    if (arg.length === 16) { // @Todo - UserId 인지 PaymentToken 인지 길이가 16인지로 Identify 한다는것이 나쁨.
-      ({
-        userId,
-        orderId
-      } = await this.paymentTokenSrv.getIds(arg));
+    // @Todo - UserId 인지 PaymentToken 인지 길이가 16인지로 Identify 한다는것이 나쁨.
+    if (arg.length === 16) {
+      ({ userId, orderId } = await this.paymentTokenSrv.getIds(arg));
     } else {
       userId = arg;
     }
@@ -63,43 +58,39 @@ export class PaymentSessionService
 
     return {
       user_id: userId,
-      ...session
+      ...session,
     };
   }
 
   public async start(
     orderId: OrderId,
-    orderable: Orderable
+    orderable: Orderable,
   ): Promise<Placeable> {
     if (await this.repo.exists(orderId)) {
       throw new Error(); // PaymentSessionFaultException
     }
 
-    const paymentToken = await this.paymentTokenSrv.generate(orderable.user_id, orderId);
-
-    const {
-      tid,
-      redirect
-    } = await this.kakaopayPaymentSrv.ready(
-      orderable,
-      paymentToken
+    const paymentToken = await this.paymentTokenSrv.generate(
+      orderable.user_id,
+      orderId,
     );
 
-    const paymentSession = await this.repo.create(
-      orderId,
-      orderable.order_session_id,
-      tid,
-      redirect,
-      paymentToken
-    ).catch(async (error: any) => {
-      await this.destroy(orderable.user_id); //
-      throw error; // PaymentSessionFaultException
-    });
+    const { tid, redirect } = await this.kakaopayPaymentSrv.ready(
+      orderable,
+      paymentToken,
+    );
+
+    const paymentSession = await this.repo
+      .create(orderId, orderable.order_session_id, tid, redirect, paymentToken)
+      .catch(async (error: any) => {
+        await this.destroy(orderable.user_id); //
+        throw error; // PaymentSessionFaultException
+      });
 
     return {
       ...orderable,
-      ...paymentSession
-    }
+      ...paymentSession,
+    };
   }
 
   public async close(withUserId: WithUserId): Promise<void> {
@@ -123,9 +114,12 @@ export class PaymentSessionService
     }
 
     await Promise.all([
-      this.kakaopayPaymentSrv.cancel(arg.tid), // 결제 준비중인것만 취소해야함
-      this.paymentTokenSrv.destroy(arg.payment_token).catch(e => this.logger.error(e)),
-      this.repo.delete(arg.user_id).catch(e => this.logger.error(e))
+      // 결제 준비중인것만 취소해야함
+      this.kakaopayPaymentSrv.cancel(arg.tid),
+      this.paymentTokenSrv
+        .destroy(arg.payment_token)
+        .catch(e => this.logger.error(e)),
+      this.repo.delete(arg.user_id).catch(e => this.logger.error(e)),
     ]);
   }
 }
