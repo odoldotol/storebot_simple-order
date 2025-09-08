@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Loggable } from '@Logger';
-import { PaymentTokenService } from './token.service';
-import { KakaopayPaymentService } from '@payment/kakaopay';
+import { PaymentSessionTokenService } from './token.service';
+import { PaymentKakaopayService } from '@payment/kakaopay';
 import {
   Orderable,
   OrderId,
@@ -16,14 +16,10 @@ import {
 @Injectable()
 export class PaymentSessionService extends Loggable {
   constructor(
-    private readonly repo: {
-      read(orderId: OrderId): Promise<PaymentSession | null>;
-      create(...args: any[]): Promise<PaymentSession>;
-      delete(userId: UserId): Promise<void>;
-      exists(userId: UserId): Promise<boolean>;
-    }, // PaymentSessionRepository,
-    private readonly paymentTokenSrv: PaymentTokenService,
-    private readonly kakaopayPaymentSrv: KakaopayPaymentService,
+    @Inject('PaymentSessionRepository')
+    private readonly repo: typeof PaymentSessionRepository,
+    private readonly paymentSessionTokenSrv: PaymentSessionTokenService,
+    private readonly paymentKakaopaySrv: PaymentKakaopayService,
   ) {
     super();
   }
@@ -41,7 +37,7 @@ export class PaymentSessionService extends Loggable {
 
     // @Todo - UserId 인지 PaymentToken 인지 길이가 16인지로 Identify 한다는것이 나쁨.
     if (arg.length === 16) {
-      ({ userId, orderId } = await this.paymentTokenSrv.getIds(arg));
+      ({ userId, orderId } = await this.paymentSessionTokenSrv.getIds(arg));
     } else {
       userId = arg;
     }
@@ -70,12 +66,12 @@ export class PaymentSessionService extends Loggable {
       throw new Error(); // PaymentSessionFaultException
     }
 
-    const paymentToken = await this.paymentTokenSrv.generate(
+    const paymentToken = await this.paymentSessionTokenSrv.generate(
       orderable.user_id,
       orderId,
     );
 
-    const { tid, redirect } = await this.kakaopayPaymentSrv.ready(
+    const { tid, redirect } = await this.paymentKakaopaySrv.ready(
       orderable,
       paymentToken,
     );
@@ -83,6 +79,7 @@ export class PaymentSessionService extends Loggable {
     const paymentSession = await this.repo
       .create(orderId, orderable.order_session_id, tid, redirect, paymentToken)
       .catch(async (error: any) => {
+        await this.paymentKakaopaySrv.cancel(tid);
         await this.destroy(orderable.user_id); //
         throw error; // PaymentSessionFaultException
       });
@@ -115,11 +112,32 @@ export class PaymentSessionService extends Loggable {
 
     await Promise.all([
       // 결제 준비중인것만 취소해야함
-      this.kakaopayPaymentSrv.cancel(arg.tid),
-      this.paymentTokenSrv
+      this.paymentKakaopaySrv.cancel(arg.tid),
+      this.paymentSessionTokenSrv
         .destroy(arg.payment_token)
         .catch(e => this.logger.error(e)),
       this.repo.delete(arg.user_id).catch(e => this.logger.error(e)),
     ]);
   }
 }
+
+export const PaymentSessionRepository = {
+  async read(orderId: OrderId): Promise<PaymentSession | null> {
+    orderId;
+    return null;
+  },
+
+  async create(...args: any[]): Promise<PaymentSession> {
+    args;
+    throw new Error(); // key collision
+  },
+
+  async delete(userId: UserId): Promise<void> {
+    userId;
+  },
+
+  async exists(userId: UserId): Promise<boolean> {
+    userId;
+    return false;
+  },
+};

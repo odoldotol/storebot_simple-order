@@ -9,7 +9,7 @@ import {
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class KakaopayPaymentService {
+export class PaymentKakaopayService {
   /**
    * @Todo - Impl
    */

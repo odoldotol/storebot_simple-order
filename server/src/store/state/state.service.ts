@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { StoreStateRepository } from './state.repository';
 import { StoreId, StoreState, StoreStateCode } from '@common/type';
 
 @Injectable()
 export class StoreStateService {
-  constructor(
-    private readonly repo: { read(storeId: StoreId): Promise<StoreState> }, // StoreStateRepository
-  ) {}
+  constructor(private readonly repo: StoreStateRepository) {}
 
   public get(storeId: StoreId): Promise<StoreState> {
-    return this.repo.read(storeId);
+    this.repo.read(storeId);
+    // 없으면 Store, Business 에서 읽어야함
+    // Store 에도 없으면 에러
+    throw new Error();
   }
 
   public isOrderable(storeState: StoreState): boolean {

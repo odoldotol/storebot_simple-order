@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Loggable } from '@Logger';
+import { OrderSessionRepository } from './session.repository';
 import { StoreStateService } from '@store/state';
 import {
   Orderable,
@@ -14,11 +15,7 @@ import {
 @Injectable()
 export class OrderSessionService extends Loggable {
   constructor(
-    private readonly repo: {
-      read(userId: UserId): Promise<OrderSession | null>;
-      renewTtl(userId: UserId): Promise<void>;
-      delete(userId: UserId): Promise<void>;
-    }, // OrderSessionRepository
+    private readonly repo: OrderSessionRepository,
     private readonly storeStateSrv: StoreStateService,
   ) {
     super();

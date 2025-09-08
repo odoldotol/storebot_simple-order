@@ -3,7 +3,7 @@ import {
   OrderMessageApprovalService,
   OrderMessagePlacedService,
 } from '@order/message';
-import { KakaopayPaymentService } from '@payment/kakaopay';
+import { PaymentKakaopayService } from '@payment/kakaopay';
 
 export class OrderApprovalService {
   private readonly sub;
@@ -12,7 +12,7 @@ export class OrderApprovalService {
     private readonly orderMessageApprovalSrv: OrderMessageApprovalService,
     private readonly orderMessageApprovalFaultSrv: OrderMessageApprovalFaultService,
     private readonly orderMessagePlacedSrv: OrderMessagePlacedService,
-    private readonly kakaopayPaymentSrv: KakaopayPaymentService,
+    private readonly paymentKakaopaySrv: PaymentKakaopayService,
   ) {
     this.sub = this.orderMessageApprovalSrv.subscribe(); // ?
     this.sub; //
@@ -45,7 +45,7 @@ Store 스트림 캐시에 주문서id 중복유무 확인하고 중복이면 스
     id;
     message;
 
-    this.kakaopayPaymentSrv;
+    this.paymentKakaopaySrv;
     this.orderMessagePlacedSrv;
     this.orderMessageApprovalFaultSrv;
   }

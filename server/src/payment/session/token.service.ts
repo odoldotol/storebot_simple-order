@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { OrderId, PaymentToken, UserId } from '@common/type';
 
 /**
@@ -8,22 +8,15 @@ import { OrderId, PaymentToken, UserId } from '@common/type';
  * 하지만 동시 결제세션 유지중인것이 100만개라고 해도 36MB 뿐이긴함.
  */
 @Injectable()
-export class PaymentTokenService {
+export class PaymentSessionTokenService {
   private readonly bytes = 12;
   private readonly retryLimit = 100;
 
   private readonly userIdLength = 36; // uuidv7 길이
 
   constructor(
-    private readonly repo: {
-      read(token: PaymentToken): Promise<string | null>;
-      create(
-        token: PaymentToken,
-        userId: UserId,
-        orderId: OrderId,
-      ): Promise<void>;
-      delete(token: PaymentToken): Promise<void>;
-    }, // PaymentTokenRepository
+    @Inject('PaymentSessionTokenRepository')
+    private readonly repo: typeof PaymentSessionTokenRepository,
   ) {}
 
   /**
@@ -84,3 +77,24 @@ export class PaymentTokenService {
  * @Todo - Imple
  */
 class PaymentTokenFaultException extends Error {}
+
+export const PaymentSessionTokenRepository = {
+  async read(token: PaymentToken): Promise<string | null> {
+    token;
+    return null;
+  },
+
+  async create(
+    token: PaymentToken,
+    userId: UserId,
+    orderId: OrderId,
+  ): Promise<void> {
+    token;
+    userId;
+    orderId;
+  },
+
+  async delete(token: PaymentToken): Promise<void> {
+    token;
+  },
+};
