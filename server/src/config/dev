@@ -1,0 +1,14 @@
+실행환경: 로컬 | 프로덕션
+
+실행목적: 개발 | 서비스 | 테스트
+
+도커에서실행 Y | N
+PM2에서실행 Y | N
+Jest에서실행 Y | N
+
+테스트: e2e | integration | unit | Undefined
+
+
+Postgres
+Redis General
+Redis Message
