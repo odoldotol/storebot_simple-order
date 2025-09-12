@@ -1,6 +1,7 @@
 {
   "name": "simple_order_server",
   "version": "0.0.1",
+  "type": "commonjs",
   "description": "",
   "author": "odoldotol",
   "private": true,
