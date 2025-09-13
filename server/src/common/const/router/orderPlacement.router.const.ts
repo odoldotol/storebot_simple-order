@@ -1,5 +1,5 @@
 import { Router } from './router.type';
-import { OrderPlacementController } from '@order/placement/placement.controller';
+import { OrderPlacementController } from '@order/placement/controller';
 
 // prettier-ignore
 export const orderPlacementRouter: Router<keyof OrderPlacementController> =

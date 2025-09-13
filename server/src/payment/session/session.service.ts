@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Loggable } from '@Logger';
+import { Loggable } from '@logger';
 import { PaymentSessionTokenService } from './token.service';
 import { PaymentKakaopayService } from '@payment/kakaopay';
 import {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Loggable } from '@Logger';
+import { Loggable } from '@logger';
 import {
   IncompleteOrderSessionException,
   NotFoundOrderSessionException,

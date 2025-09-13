@@ -4,8 +4,10 @@ import {
   // HttpStatus,
   Post,
 } from '@nestjs/common';
-import { OrderPlacementService } from './placement.service';
-import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
+import {
+  OrderPlacementApprovalResponseService,
+  OrderPlacementService,
+} from '@order/placement/provider';
 import { orderPlacementRouter } from '@common/const';
 import { Payable } from '@common/type';
 

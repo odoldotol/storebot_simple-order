@@ -1,9 +1,5 @@
-import { Global, Module } from '@nestjs/common';
+import { LoggerModule } from '@modules';
 import { ConsoleLogger } from './console';
 
-@Global()
-@Module({
-  providers: [ConsoleLogger],
-  exports: [ConsoleLogger],
-})
-export class LoggerModule {}
+LoggerModule.providers = [ConsoleLogger];
+LoggerModule.exports = [ConsoleLogger];

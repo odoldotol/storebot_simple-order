@@ -1,18 +1,16 @@
-import { Module } from '@nestjs/common';
+import { OrderMessageModule } from '@modules';
 import { OrderMessageApprovalService } from './approval.service';
 import { OrderMessageApprovalFaultService } from './approvalFault.service';
 import { OrderMessagePlacedService } from './placed.service';
 
-@Module({
-  providers: [
-    OrderMessageApprovalService,
-    OrderMessageApprovalFaultService,
-    OrderMessagePlacedService,
-  ],
-  exports: [
-    OrderMessageApprovalService,
-    OrderMessageApprovalFaultService,
-    OrderMessagePlacedService,
-  ],
-})
-export class OrderMessageModule {}
+OrderMessageModule.providers = [
+  OrderMessageApprovalService,
+  OrderMessageApprovalFaultService,
+  OrderMessagePlacedService,
+];
+
+OrderMessageModule.exports = [
+  OrderMessageApprovalService,
+  OrderMessageApprovalFaultService,
+  OrderMessagePlacedService,
+];

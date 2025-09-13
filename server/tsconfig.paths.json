@@ -2,23 +2,27 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
+      "@accounting/*": ["src/accounting/*"],
       "@app": ["src/app/index"],
       "@app/*": ["src/app/*"],
       "@common/*": ["src/common/*"],
       "@config/*": ["src/config/*"],
-      "@kakaoChatbotSkill": ["src/kakaoChatbotSkill/index"],
-      "@kakaoChatbotSkill/*": ["src/kakaoChatbotSkill/*"],
-      "@Logger": ["src/logger/index"],
+      "@kakaoChatbot": ["src/kakaoChatbot/index"],
+      "@kakaoChatbot/*": ["src/kakaoChatbot/*"],
+      "@logger": ["src/logger/index"],
+      "@logger/*": ["src/logger/*"],
       "@menu/*": ["src/menu/*"],
+      "@modules": ["src/modules"],
+      "@openTelemetry/*": ["src/openTelemetry/*"],
+      "@order": ["src/order/index"],
       "@order/*": ["src/order/*"],
       "@payment": ["src/payment/index"],
       "@payment/*": ["src/payment/*"],
       "@postgres/*": ["src/postgres/*"],
       "@redis/*": ["src/redis/*"],
+      "@store": ["src/store/index"],
       "@store/*": ["src/store/*"],
       "@user/*": ["src/user/*"],
-      "@accounting/*": ["src/accounting/*"],
-      "@openTelemetry/*": ["src/openTelemetry/*"]
     }
   }
 }

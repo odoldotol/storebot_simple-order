@@ -1,8 +1,6 @@
-import { Module } from '@nestjs/common';
+import { PaymentKakaopayModule } from '@modules';
 import { PaymentKakaopayService } from './kakaopay.service';
 
-@Module({
-  providers: [PaymentKakaopayService],
-  exports: [PaymentKakaopayService],
-})
-export class PaymentKakaopayModule {}
+PaymentKakaopayModule.providers = [PaymentKakaopayService];
+
+PaymentKakaopayModule.exports = [PaymentKakaopayService];

@@ -1,12 +1,7 @@
-import { Module } from '@nestjs/common';
+import { StoreStateModule } from '@modules';
 import { StoreStateRepository } from './state.repository';
 import { StoreStateService } from './state.service';
 
-@Module({
-  imports: [
-    // redis
-  ],
-  providers: [StoreStateRepository, StoreStateService],
-  exports: [StoreStateService],
-})
-export class StoreStateModule {}
+StoreStateModule.providers = [StoreStateRepository, StoreStateService];
+
+StoreStateModule.exports = [StoreStateService];

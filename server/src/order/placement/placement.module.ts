@@ -1,20 +1,11 @@
-import { Module } from '@nestjs/common';
-import { OrderSessionModule } from '@order/session';
-import { PaymentSessionModule } from '@payment/session';
-import { OrderMessageModule } from '@order/message';
-import { OrderPlacementController } from './placement.controller';
-import { OrderPlacementService } from './placement.service';
-import { OrderIdService } from './orderId.service';
-import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
+import { OrderPlacementModule } from '@modules';
+import { controllers } from './controller';
+import { OrderPlacementService, providers } from './provider';
 
-@Module({
-  imports: [OrderSessionModule, PaymentSessionModule, OrderMessageModule],
-  controllers: [OrderPlacementController],
-  providers: [
-    OrderIdService,
-    OrderPlacementService,
-    OrderPlacementApprovalResponseService,
-  ],
-  exports: [OrderPlacementService],
-})
-export class OrderPlacementModule {}
+OrderPlacementModule.controllers = controllers;
+OrderPlacementModule.providers = providers;
+
+/////////////////////////////////////////////////////////////////////
+
+OrderPlacementModule.exports = [OrderPlacementService];
+export { OrderPlacementService };
