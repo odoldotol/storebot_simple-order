@@ -1,19 +1,16 @@
-export type Router<T extends string> = {
+export type ApiSpec<T extends string> = {
   prefix: string;
   version?: Version;
-  routes: Routes<T>;
-};
+} & Record<T, Endpoint>;
 
-type Routes<T extends string> = Record<T, Route>;
-
-type Route = {
+type Endpoint = {
   version?: Version;
   path: string;
   method: HttpMethod;
   // params, query, ...
 };
 
-type Version = string;
+type Version = `${number}`;
 
 type HttpMethod =
   | 'GET'
@@ -22,4 +19,6 @@ type HttpMethod =
   | 'DELETE'
   | 'PATCH'
   | 'OPTIONS'
-  | 'HEAD';
+  | 'HEAD'
+  | 'CONNECT'
+  | 'TRACE';

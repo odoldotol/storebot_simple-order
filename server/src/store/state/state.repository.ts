@@ -1,4 +1,4 @@
-import { StoreId, StoreState } from '@common/type';
+import { StoreId, StoreState } from '@type';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

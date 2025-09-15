@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Loggable } from '@logger';
 import { OrderSessionRepository } from './session.repository';
-import { StoreStateService } from '@store/state';
+import { StoreStateService } from '@storeState';
 import {
   Orderable,
   OrderSession,
@@ -10,7 +10,13 @@ import {
   StoreState,
   UserId,
   WithUserId,
-} from '@common/type';
+} from '@type';
+import {
+  NotFoundOrderSessionException,
+  NotOpenStoreException,
+  OrderableSessionIdFaultException,
+  OrderSessionIdFaultException,
+} from '@exception';
 
 @Injectable()
 export class OrderSessionService extends Loggable {
@@ -165,33 +171,3 @@ type CheckOptions = {
   checkComplete?: boolean;
   checkIdLast?: boolean;
 };
-
-export class OrderSessionIdFaultException extends BadRequestException {
-  constructor(public readonly orderSession: OrderSession) {
-    super(''); //
-  }
-}
-
-export class OrderableSessionIdFaultException extends BadRequestException {
-  constructor(public readonly orderable: Orderable) {
-    super(''); //
-  }
-}
-
-export class NotFoundOrderSessionException extends BadRequestException {
-  constructor() {
-    super();
-  }
-}
-
-export class NotOpenStoreException extends BadRequestException {
-  constructor(public readonly storeState: StoreState) {
-    super();
-  }
-}
-
-export class IncompleteOrderSessionException extends BadRequestException {
-  constructor(public readonly incomplete: any) {
-    super();
-  }
-}

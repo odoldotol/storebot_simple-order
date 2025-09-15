@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as R from 'rxjs';
-import { UserId } from '@common/type';
+import { UserId } from '@type';
 
 @Injectable()
 export class OrderPlacementApprovalResponseService {

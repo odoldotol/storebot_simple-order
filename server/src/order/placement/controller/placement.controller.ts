@@ -7,18 +7,18 @@ import {
 import {
   OrderPlacementApprovalResponseService,
   OrderPlacementService,
-} from '@order/placement/provider';
-import { orderPlacementRouter } from '@common/const';
-import { Payable } from '@common/type';
+} from '../provider';
+import { API_SPEC } from '@apiSpec/orderPlacement.apiSpec';
+import { Payable } from '@type';
 
-@Controller(orderPlacementRouter.prefix)
+@Controller(API_SPEC.prefix)
 export class OrderPlacementController {
   constructor(
     private readonly orderPlacementService: OrderPlacementService,
     private readonly orderPlacementApprovalResponseSrv: OrderPlacementApprovalResponseService,
   ) {}
 
-  @Post(orderPlacementRouter.routes.approveByKakaopay.path)
+  @Post(API_SPEC.approveByKakaopay.path)
   public async approveByKakaopay(
     // 파라미터 및 쿼리스트링에서 PaymentToken, pgToken 추출하기
     pgToken = '',
@@ -36,9 +36,9 @@ export class OrderPlacementController {
     return result;
   }
 
-  @Post(orderPlacementRouter.routes.cancelByKakaopay.path)
+  @Post(API_SPEC.cancelByKakaopay.path)
   public cancelByKakaopay() {}
 
-  @Post(orderPlacementRouter.routes.failByKakaopay.path)
+  @Post(API_SPEC.failByKakaopay.path)
   public failByKakaopay() {}
 }

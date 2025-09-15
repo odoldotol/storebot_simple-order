@@ -1,24 +1,7 @@
-import { PaymentSessionModule } from '@modules';
-import {
-  PaymentSessionRepository,
-  PaymentSessionService,
-} from './session.service';
-import {
-  PaymentSessionTokenRepository,
-  PaymentSessionTokenService,
-} from './token.service';
+import { PaymentSessionModule } from '@module';
+import * as Provider from './provider';
+import * as Export from './export';
+import { addExports, addProviders } from '@util';
 
-PaymentSessionModule.providers = [
-  {
-    provide: 'PaymentSessionRepository',
-    useValue: PaymentSessionRepository,
-  },
-  {
-    provide: 'PaymentSessionTokenRepository',
-    useValue: PaymentSessionTokenRepository,
-  },
-  PaymentSessionService,
-  PaymentSessionTokenService,
-];
-
-PaymentSessionModule.exports = [PaymentSessionService];
+addProviders(PaymentSessionModule, Provider);
+addExports(PaymentSessionModule, Export);

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OrderId } from '@common/type';
+import { OrderId } from '@type';
 import { v7 as uuidV7 } from 'uuid';
 
 @Injectable()

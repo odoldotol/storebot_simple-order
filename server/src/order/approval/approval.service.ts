@@ -2,8 +2,8 @@ import {
   OrderMessageApprovalFaultService,
   OrderMessageApprovalService,
   OrderMessagePlacedService,
-} from '@order/message';
-import { PaymentKakaopayService } from '@payment/kakaopay';
+} from '@orderMessage';
+import { PaymentKakaopayService } from '@paymentKakaopay';
 
 export class OrderApprovalService {
   private readonly sub;

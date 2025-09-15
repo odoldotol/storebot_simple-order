@@ -1,11 +1,9 @@
-import { OrderPlacementModule } from '@modules';
-import { controllers } from './controller';
-import { OrderPlacementService, providers } from './provider';
+import { OrderPlacementModule } from '@module';
+import * as Controller from './controller';
+import * as Provider from './provider';
+import * as Export from './export';
+import { addControllers, addExports, addProviders } from '@util';
 
-OrderPlacementModule.controllers = controllers;
-OrderPlacementModule.providers = providers;
-
-/////////////////////////////////////////////////////////////////////
-
-OrderPlacementModule.exports = [OrderPlacementService];
-export { OrderPlacementService };
+addControllers(OrderPlacementModule, Controller);
+addProviders(OrderPlacementModule, Provider);
+addExports(OrderPlacementModule, Export);

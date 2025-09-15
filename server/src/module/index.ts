@@ -1,4 +1,15 @@
+// @CommonJS
+
 import { DynamicModule } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
+
+/* 목적
+- 관심사 분리
+- 독립성, 재사용성
+- 코드 위치 논리성
+- 의존성 주입 명확성
+- 모듈간 의존성 파악 용이성, 모듈 계층구조 명확성 등 모듈 시스템 가시성
+ */
 
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
@@ -70,13 +81,11 @@ export const OrderRepositoryModule: DynamicModule = {
   imports: [RepositoryModule],
 };
 
-/**
- * [link](./order/message/message.module.ts)
- */
 export const OrderMessageModule: DynamicModule = {
   module: class OrderMessage {},
   imports: [MessageModule],
 };
+import 'src/order/message/message.module';
 
 export const StoreMessageModule: DynamicModule = {
   module: class StoreMessage {},
@@ -90,9 +99,6 @@ export const StoreMessageModule: DynamicModule = {
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
-/**
- * [link](./store/state/state.module.ts)
- */
 export const StoreStateModule: DynamicModule = {
   module: class StoreState {},
   imports: [
@@ -100,27 +106,19 @@ export const StoreStateModule: DynamicModule = {
     StoreRepositoryModule,
   ],
 };
+import 'src/store/state/state.module';
 
 export const KakaoChatbotEventModule: DynamicModule = {
   module: class KakaoChatbotEvent {},
-  imports: [
-    // HttpModule,
-  ],
+  imports: [HttpModule],
 };
 
-/**
- * [link](./payment/kakaopay/kakaopay.module.ts)
- */
 export const PaymentKakaopayModule: DynamicModule = {
   module: class PaymentKakaopay {},
-  imports: [
-    // HttpModule,
-  ],
+  imports: [HttpModule],
 };
+import 'src/payment/kakaopay/kakaopay.module';
 
-/**
- * [link](./payment/session/session.module.ts)
- */
 export const PaymentSessionModule: DynamicModule = {
   module: class PaymentSession {},
   imports: [
@@ -128,9 +126,8 @@ export const PaymentSessionModule: DynamicModule = {
     PaymentKakaopayModule,
   ],
 };
+import 'src/payment/session/session.module';
 
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
 export const UserAuthModule: DynamicModule = {
@@ -167,9 +164,6 @@ export const OrderDocumentModule: DynamicModule = {
   ],
 };
 
-/**
- * [link](./order/session/session.module.ts)
- */
 export const OrderSessionModule: DynamicModule = {
   module: class OrderSession {},
   imports: [
@@ -177,17 +171,14 @@ export const OrderSessionModule: DynamicModule = {
     StoreStateModule,
   ],
 };
+import 'src/order/session/session.module';
 
-/**
- * [link](./order/placement/placement.module.ts)
- */
 export const OrderPlacementModule: DynamicModule = {
   module: class OrderPlacement {},
   imports: [OrderSessionModule, PaymentSessionModule, OrderMessageModule],
 };
+import 'src/order/placement/placement.module';
 
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
 /**
@@ -197,10 +188,8 @@ export const LoggerModule: DynamicModule = {
   module: class Logger {},
   global: true,
 };
+import 'src/logger/logger.module';
 
-/**
- * [link](./kakaoChatbot/skill/kakaoChatbotSkill.module.ts)
- */
 export const KakaoChatbotSkillModule: DynamicModule = {
   module: class KakaoChatbotSkill {},
   imports: [
@@ -213,6 +202,7 @@ export const KakaoChatbotSkillModule: DynamicModule = {
     OrderPlacementModule,
   ],
 };
+import 'src/kakaoChatbot/skill/skill.module';
 
 export const OrderApprovalModule: DynamicModule = {
   module: class OrderApproval {},
@@ -233,9 +223,6 @@ export const AlertModule: DynamicModule = {
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
-/**
- * [link](./app/app.module.ts)
- */
 export const AppModule: DynamicModule = {
   module: class App {},
   imports: [
@@ -247,14 +234,4 @@ export const AppModule: DynamicModule = {
     AlertModule,
   ],
 };
-
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-
-import '@app';
-import '@kakaoChatbot';
-import '@logger';
-import '@order';
-import '@payment';
-import '@store';
+import 'src/app/app.module';

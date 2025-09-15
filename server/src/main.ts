@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '@modules';
+import { AppModule } from '@module';
 import { DefaultLogger } from '@logger/default';
 
 async function bootstrap() {

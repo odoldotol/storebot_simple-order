@@ -1,12 +1,7 @@
-import { OrderSessionModule } from '@modules';
-import { OrderSessionRepository } from './session.repository';
-import { OrderSessionService } from './session.service';
-import { OrderSessionIdService } from './sessionId.service';
+import { OrderSessionModule } from '@module';
+import * as Provider from './provider';
+import * as Export from './export';
+import { addExports, addProviders } from '@util';
 
-OrderSessionModule.providers = [
-  OrderSessionRepository,
-  OrderSessionService,
-  OrderSessionIdService,
-];
-
-OrderSessionModule.exports = [OrderSessionService];
+addProviders(OrderSessionModule, Provider);
+addExports(OrderSessionModule, Export);

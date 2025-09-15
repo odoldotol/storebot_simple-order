@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import {
   Orderable,
   // OrderId,
@@ -5,8 +6,7 @@ import {
   Redirect,
   Url,
   // UserId
-} from '@common/type';
-import { Injectable } from '@nestjs/common';
+} from '@type';
 
 @Injectable()
 export class PaymentKakaopayService {

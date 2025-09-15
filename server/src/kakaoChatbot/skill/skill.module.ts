@@ -1,4 +1,4 @@
-import { KakaoChatbotSkillModule } from '@modules';
+import { KakaoChatbotSkillModule } from '@module';
 import { KakaoChatbotSkillOrderController } from './order.controller';
 import { KakaoChatbotSkillResponseOrderBody } from './skillResponse';
 

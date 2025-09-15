@@ -1,5 +1,5 @@
-import { UserId } from '@common/type';
 import { Injectable } from '@nestjs/common';
+import { UserId } from '@type';
 
 @Injectable()
 export class OrderMessageApprovalFaultService {

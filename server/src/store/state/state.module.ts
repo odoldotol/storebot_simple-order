@@ -1,4 +1,4 @@
-import { StoreStateModule } from '@modules';
+import { StoreStateModule } from '@module';
 import { StoreStateRepository } from './state.repository';
 import { StoreStateService } from './state.service';
 

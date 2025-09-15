@@ -1,5 +1,5 @@
-import { OrderSession, UserId } from '@common/type';
 import { Injectable } from '@nestjs/common';
+import { OrderSession, UserId } from '@type';
 
 @Injectable()
 export class OrderSessionRepository {

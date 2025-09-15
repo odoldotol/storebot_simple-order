@@ -1,1 +1,1 @@
-export * from './placement.module';
+export * from './export';

@@ -1,16 +1,7 @@
-import { OrderMessageModule } from '@modules';
-import { OrderMessageApprovalService } from './approval.service';
-import { OrderMessageApprovalFaultService } from './approvalFault.service';
-import { OrderMessagePlacedService } from './placed.service';
+import { OrderMessageModule } from '@module';
+import * as Provider from './provider';
+import * as Export from './export';
+import { addExports, addProviders } from '@util';
 
-OrderMessageModule.providers = [
-  OrderMessageApprovalService,
-  OrderMessageApprovalFaultService,
-  OrderMessagePlacedService,
-];
-
-OrderMessageModule.exports = [
-  OrderMessageApprovalService,
-  OrderMessageApprovalFaultService,
-  OrderMessagePlacedService,
-];
+addProviders(OrderMessageModule, Provider);
+addExports(OrderMessageModule, Export);

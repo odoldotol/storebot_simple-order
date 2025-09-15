@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import { Inject, Injectable } from '@nestjs/common';
-import { OrderId, PaymentToken, UserId } from '@common/type';
+import { Inject, Injectable, Provider } from '@nestjs/common';
+import { OrderId, PaymentToken, UserId } from '@type';
 
 /**
  * UserId 와 OrderId 를 문자열 그대로 Redis 에 String 으로 저장하는데 메모리를 절약할 여지가 있음.
@@ -78,7 +78,7 @@ export class PaymentSessionTokenService {
  */
 class PaymentTokenFaultException extends Error {}
 
-export const PaymentSessionTokenRepository = {
+const PaymentSessionTokenRepository = {
   async read(token: PaymentToken): Promise<string | null> {
     token;
     return null;
@@ -97,4 +97,9 @@ export const PaymentSessionTokenRepository = {
   async delete(token: PaymentToken): Promise<void> {
     token;
   },
+};
+
+export const PaymentSessionTokenRepositoryProvider: Provider = {
+  provide: 'PaymentSessionTokenRepository',
+  useValue: PaymentSessionTokenRepository,
 };

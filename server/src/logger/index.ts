@@ -1,2 +1,2 @@
-export * from './logger.module';
+export * from './console';
 export * from './loggable';

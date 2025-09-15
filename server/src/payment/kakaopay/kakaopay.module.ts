@@ -1,4 +1,4 @@
-import { PaymentKakaopayModule } from '@modules';
+import { PaymentKakaopayModule } from '@module';
 import { PaymentKakaopayService } from './kakaopay.service';
 
 PaymentKakaopayModule.providers = [PaymentKakaopayService];

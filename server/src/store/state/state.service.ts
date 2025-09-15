@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { StoreStateRepository } from './state.repository';
-import { StoreId, StoreState, StoreStateCode } from '@common/type';
+import { StoreId, StoreState, StoreStateCode } from '@type';
 
 @Injectable()
 export class StoreStateService {

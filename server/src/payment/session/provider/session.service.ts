@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Provider } from '@nestjs/common';
 import { Loggable } from '@logger';
 import { PaymentSessionTokenService } from './token.service';
-import { PaymentKakaopayService } from '@payment/kakaopay';
+import { PaymentKakaopayService } from '@paymentKakaopay';
 import {
   Orderable,
   OrderId,
@@ -11,7 +11,7 @@ import {
   Placeable,
   UserId,
   WithUserId,
-} from '@common/type';
+} from '@type';
 
 @Injectable()
 export class PaymentSessionService extends Loggable {
@@ -121,7 +121,7 @@ export class PaymentSessionService extends Loggable {
   }
 }
 
-export const PaymentSessionRepository = {
+const PaymentSessionRepository = {
   async read(orderId: OrderId): Promise<PaymentSession | null> {
     orderId;
     return null;
@@ -140,4 +140,9 @@ export const PaymentSessionRepository = {
     userId;
     return false;
   },
+};
+
+export const PaymentSessionRepositoryProvider: Provider = {
+  provide: 'PaymentSessionRepository',
+  useValue: PaymentSessionRepository,
 };

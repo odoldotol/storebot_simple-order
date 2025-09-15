@@ -1,5 +1,5 @@
-import { Placeable } from '@common/type';
 import { Injectable } from '@nestjs/common';
+import { Placeable } from '@type';
 
 @Injectable()
 export class OrderMessageApprovalService {

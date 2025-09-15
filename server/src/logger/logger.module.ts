@@ -1,4 +1,4 @@
-import { LoggerModule } from '@modules';
+import { LoggerModule } from '@module';
 import { ConsoleLogger } from './console';
 
 LoggerModule.providers = [ConsoleLogger];

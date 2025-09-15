@@ -8,10 +8,10 @@ import {
   KakaoChatbotSkillResponseOrderBody,
   SkillResponseV2,
 } from './skillResponse';
-import { OrderPlacementService } from '@order/placement';
-import { kakaoChatbotSkillOrderRouter } from '@common/const';
+import { OrderPlacementService } from '@orderPlacement';
+import { API_SPEC } from '@apiSpec/kakaoChatbotSkillOrder.apiSpec';
 
-@Controller(kakaoChatbotSkillOrderRouter.prefix)
+@Controller(API_SPEC.prefix)
 // @UseGuards
 // @UseInterceptors(TimeoutInterceptor)
 // @UseFilters
@@ -21,7 +21,7 @@ export class KakaoChatbotSkillOrderController {
     private readonly orderPlacementSrv: OrderPlacementService,
   ) {}
 
-  @Post(kakaoChatbotSkillOrderRouter.routes.place.path)
+  @Post(API_SPEC.place.path)
   public async place(
     userId: string, // @Todo - Pipe
   ): Promise<SkillResponseV2> {
