@@ -235,3 +235,6 @@ export const AppModule: DynamicModule = {
   ],
 };
 import 'src/app/app.module';
+
+// [실험중]
+import './document';

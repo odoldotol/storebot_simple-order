@@ -1,0 +1,707 @@
+{
+  "module": "App",
+  "imports": [
+    {
+      "module": "Logger",
+      "global": true,
+      "providers": [
+        "ConsoleLogger"
+      ],
+      "exports": [
+        "ConsoleLogger"
+      ]
+    },
+    {
+      "module": "KakaoChatbotSkill",
+      "imports": [
+        {
+          "module": "UserAuth",
+          "imports": [
+            {
+              "module": "UserRepository",
+              "imports": [
+                {
+                  "module": "Repository",
+                  "imports": [
+                    {
+                      "module": "Postgres"
+                    }
+                  ]
+                },
+                {
+                  "module": "Cache",
+                  "imports": [
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "module": "UserNickname",
+          "imports": [
+            {
+              "module": "UserRepository",
+              "imports": [
+                {
+                  "module": "Repository",
+                  "imports": [
+                    {
+                      "module": "Postgres"
+                    }
+                  ]
+                },
+                {
+                  "module": "Cache",
+                  "imports": [
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "module": "StoreFinder",
+          "imports": [
+            {
+              "module": "StoreState",
+              "imports": [
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                },
+                {
+                  "module": "StoreRepository",
+                  "imports": [
+                    {
+                      "module": "Repository",
+                      "imports": [
+                        {
+                          "module": "Postgres"
+                        }
+                      ]
+                    },
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    },
+                    {
+                      "module": "Cache",
+                      "imports": [
+                        {
+                          "module": "RedisGeneral",
+                          "imports": [
+                            {
+                              "module": "Redis"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "providers": [
+                "StoreStateRepository",
+                "StoreStateService"
+              ],
+              "exports": [
+                "StoreStateService"
+              ]
+            },
+            {
+              "module": "StoreRepository",
+              "imports": [
+                {
+                  "module": "Repository",
+                  "imports": [
+                    {
+                      "module": "Postgres"
+                    }
+                  ]
+                },
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                },
+                {
+                  "module": "Cache",
+                  "imports": [
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "module": "MenuDocument",
+          "imports": [
+            {
+              "module": "MenuRepository",
+              "imports": [
+                {
+                  "module": "Cache",
+                  "imports": [
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "module": "OrderDocument",
+          "imports": [
+            {
+              "module": "RedisGeneral",
+              "imports": [
+                {
+                  "module": "Redis"
+                }
+              ]
+            },
+            {
+              "module": "RedisGeneral",
+              "imports": [
+                {
+                  "module": "Redis"
+                }
+              ]
+            },
+            {
+              "module": "OrderRepository",
+              "imports": [
+                {
+                  "module": "Repository",
+                  "imports": [
+                    {
+                      "module": "Postgres"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "module": "OrderMessage",
+              "imports": [
+                {
+                  "module": "Message",
+                  "imports": [
+                    {
+                      "module": "RedisMessage",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "providers": [
+                "OrderMessageApprovalService",
+                "OrderMessageApprovalFaultService",
+                "OrderMessagePlacedService"
+              ],
+              "exports": [
+                "OrderMessageApprovalService",
+                "OrderMessageApprovalFaultService",
+                "OrderMessagePlacedService"
+              ]
+            },
+            {
+              "module": "StoreMessage",
+              "imports": [
+                {
+                  "module": "Message",
+                  "imports": [
+                    {
+                      "module": "RedisMessage",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "module": "OrderSession",
+          "imports": [
+            {
+              "module": "RedisGeneral",
+              "imports": [
+                {
+                  "module": "Redis"
+                }
+              ]
+            },
+            {
+              "module": "StoreState",
+              "imports": [
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                },
+                {
+                  "module": "StoreRepository",
+                  "imports": [
+                    {
+                      "module": "Repository",
+                      "imports": [
+                        {
+                          "module": "Postgres"
+                        }
+                      ]
+                    },
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    },
+                    {
+                      "module": "Cache",
+                      "imports": [
+                        {
+                          "module": "RedisGeneral",
+                          "imports": [
+                            {
+                              "module": "Redis"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "providers": [
+                "StoreStateRepository",
+                "StoreStateService"
+              ],
+              "exports": [
+                "StoreStateService"
+              ]
+            }
+          ],
+          "providers": [
+            "OrderSessionRepository",
+            "OrderSessionService",
+            "OrderSessionIdService"
+          ],
+          "exports": [
+            "OrderSessionService"
+          ]
+        },
+        {
+          "module": "OrderPlacement",
+          "imports": [
+            {
+              "module": "OrderSession",
+              "imports": [
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                },
+                {
+                  "module": "StoreState",
+                  "imports": [
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    },
+                    {
+                      "module": "StoreRepository",
+                      "imports": [
+                        {
+                          "module": "Repository",
+                          "imports": [
+                            {
+                              "module": "Postgres"
+                            }
+                          ]
+                        },
+                        {
+                          "module": "RedisGeneral",
+                          "imports": [
+                            {
+                              "module": "Redis"
+                            }
+                          ]
+                        },
+                        {
+                          "module": "Cache",
+                          "imports": [
+                            {
+                              "module": "RedisGeneral",
+                              "imports": [
+                                {
+                                  "module": "Redis"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "providers": [
+                    "StoreStateRepository",
+                    "StoreStateService"
+                  ],
+                  "exports": [
+                    "StoreStateService"
+                  ]
+                }
+              ],
+              "providers": [
+                "OrderSessionRepository",
+                "OrderSessionService",
+                "OrderSessionIdService"
+              ],
+              "exports": [
+                "OrderSessionService"
+              ]
+            },
+            {
+              "module": "PaymentSession",
+              "imports": [
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                },
+                {
+                  "module": "PaymentKakaopay",
+                  "imports": [
+                    {
+                      "module": "HttpModule",
+                      "providers": [
+                        "HttpService",
+                        "AXIOS_INSTANCE_TOKEN"
+                      ],
+                      "exports": [
+                        "HttpService"
+                      ]
+                    }
+                  ],
+                  "providers": [
+                    "PaymentKakaopayService"
+                  ],
+                  "exports": [
+                    "PaymentKakaopayService"
+                  ]
+                }
+              ],
+              "providers": [
+                "PaymentSessionService",
+                "PaymentSessionRepository",
+                "PaymentSessionTokenService",
+                "PaymentSessionTokenRepository"
+              ],
+              "exports": [
+                "PaymentSessionService"
+              ]
+            },
+            {
+              "module": "OrderMessage",
+              "imports": [
+                {
+                  "module": "Message",
+                  "imports": [
+                    {
+                      "module": "RedisMessage",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "providers": [
+                "OrderMessageApprovalService",
+                "OrderMessageApprovalFaultService",
+                "OrderMessagePlacedService"
+              ],
+              "exports": [
+                "OrderMessageApprovalService",
+                "OrderMessageApprovalFaultService",
+                "OrderMessagePlacedService"
+              ]
+            }
+          ],
+          "controllers": [
+            "OrderPlacementController"
+          ],
+          "providers": [
+            "OrderPlacementService",
+            "OrderIdService",
+            "OrderPlacementApprovalResponseService"
+          ],
+          "exports": [
+            "OrderPlacementService"
+          ]
+        }
+      ],
+      "controllers": [
+        "KakaoChatbotSkillOrderController"
+      ],
+      "providers": [
+        "KakaoChatbotSkillResponseOrderBody"
+      ]
+    },
+    {
+      "module": "OrderApproval",
+      "imports": [
+        {
+          "module": "PaymentKakaopay",
+          "imports": [
+            {
+              "module": "HttpModule",
+              "providers": [
+                "HttpService",
+                "AXIOS_INSTANCE_TOKEN"
+              ],
+              "exports": [
+                "HttpService"
+              ]
+            }
+          ],
+          "providers": [
+            "PaymentKakaopayService"
+          ],
+          "exports": [
+            "PaymentKakaopayService"
+          ]
+        },
+        {
+          "module": "OrderRepository",
+          "imports": [
+            {
+              "module": "Repository",
+              "imports": [
+                {
+                  "module": "Postgres"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "module": "OrderMessage",
+          "imports": [
+            {
+              "module": "Message",
+              "imports": [
+                {
+                  "module": "RedisMessage",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "providers": [
+            "OrderMessageApprovalService",
+            "OrderMessageApprovalFaultService",
+            "OrderMessagePlacedService"
+          ],
+          "exports": [
+            "OrderMessageApprovalService",
+            "OrderMessageApprovalFaultService",
+            "OrderMessagePlacedService"
+          ]
+        },
+        {
+          "module": "StoreMessage",
+          "imports": [
+            {
+              "module": "Message",
+              "imports": [
+                {
+                  "module": "RedisMessage",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "module": "RedisGeneral",
+              "imports": [
+                {
+                  "module": "Redis"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "module": "Alert",
+      "imports": [
+        {
+          "module": "UserAuth",
+          "imports": [
+            {
+              "module": "UserRepository",
+              "imports": [
+                {
+                  "module": "Repository",
+                  "imports": [
+                    {
+                      "module": "Postgres"
+                    }
+                  ]
+                },
+                {
+                  "module": "Cache",
+                  "imports": [
+                    {
+                      "module": "RedisGeneral",
+                      "imports": [
+                        {
+                          "module": "Redis"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "module": "OrderMessage",
+          "imports": [
+            {
+              "module": "Message",
+              "imports": [
+                {
+                  "module": "RedisMessage",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "providers": [
+            "OrderMessageApprovalService",
+            "OrderMessageApprovalFaultService",
+            "OrderMessagePlacedService"
+          ],
+          "exports": [
+            "OrderMessageApprovalService",
+            "OrderMessageApprovalFaultService",
+            "OrderMessagePlacedService"
+          ]
+        },
+        {
+          "module": "KakaoChatbotEvent",
+          "imports": [
+            {
+              "module": "HttpModule",
+              "providers": [
+                "HttpService",
+                "AXIOS_INSTANCE_TOKEN"
+              ],
+              "exports": [
+                "HttpService"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "controllers": [
+    "AppController"
+  ],
+  "providers": [
+    "AppService"
+  ]
+}

@@ -9,86 +9,153 @@
 - production 에서는 필요없음. dev 목적
  */
 
-import { DynamicModule } from '@nestjs/common';
 import { writeFileSync } from 'fs';
+import {
+  Abstract,
+  DynamicModule,
+  ForwardReference,
+  Provider,
+  Type,
+} from '@nestjs/common';
+import {
+  GLOBAL_MODULE_METADATA,
+  MODULE_METADATA,
+} from '@nestjs/common/constants';
 import { AppModule } from './index';
+import { isType } from '@util';
 
 /**
- * @Todo 메타데이타로 정의하는 것 등 모든 모듈의 의존성 그래프 만들어줘여함
+ * forwardReference 는 처리안함. 에러 던짐.
  */
-async function buildDiagram(module: DynamicModule): Promise<Diagram> {
-  const dia: Diagram = { module: 'Unknown' };
-  for (const k in module) {
-    switch (k) {
-      case 'module':
-        dia.module = module[k].name;
-        break;
-      case 'global':
-        dia.global = module[k]!;
-        break;
-      case 'imports':
-        dia.imports = await Promise.all(
-          module[k]!.map(async m => {
-            if ('module' in m) {
-              return buildDiagram(m);
-            } else if (m instanceof Promise) {
-              return await m.then(buildDiagram);
-            } else {
-              throw new Error(`Not DynamicModule: ${m.toString()}`);
-            }
-          }),
-        );
-        break;
-      case 'controllers':
-        dia.controllers = module[k]!.map(c => c.name);
-        break;
-      case 'providers':
-        dia.providers = module[k]!.map(p => {
-          if ('name' in p) {
-            return p.name;
-          } else {
-            return p.provide.toString();
-          }
-        });
-        break;
-      case 'exports':
-        dia.exports = module[k]!.map(e => {
-          if (typeof e === 'object') {
-            if ('module' in e) {
-              return e.module.name;
-            } else if ('provide' in e) {
-              return e.provide.toString();
-            } else {
-              // forwardReference 왜써? 쓰지마
-              throw new Error(`forwardReference: ${e.toString()}`);
-            }
-          } else if (typeof e === 'function') {
-            return e.name;
-          } else {
-            return e.toString();
-          }
-        });
-        break;
+async function buildDiagram(
+  module: DynamicModule | Promise<DynamicModule> | Type | ForwardReference,
+): Promise<Diagram> {
+  if ('forwardRef' in module) {
+    throw new Error(`forwardReference: ${module.toString()}`);
+  }
+
+  if (module instanceof Promise) {
+    module = await module;
+  }
+
+  const result: Diagram = { module: 'Unknown' };
+
+  let global: DynamicModule['global'] = undefined,
+    imports: DynamicModule['imports'] | undefined = undefined,
+    controllers: DynamicModule['controllers'] | undefined = undefined,
+    providers: DynamicModule['providers'] | undefined = undefined,
+    exports: DynamicModule['exports'] | undefined = undefined;
+
+  if (isType(module)) {
+    result.module = module.name;
+
+    global = Reflect.getMetadata(GLOBAL_MODULE_METADATA, module);
+    global !== undefined && console.log('global', global); // 나중에 확인하게 되도록
+    imports = Reflect.getMetadata(MODULE_METADATA.IMPORTS, module);
+    controllers = Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, module);
+    providers = Reflect.getMetadata(MODULE_METADATA.PROVIDERS, module);
+    exports = Reflect.getMetadata(MODULE_METADATA.EXPORTS, module);
+  } else {
+    for (const k in module) {
+      switch (k) {
+        case 'module':
+          result.module = module[k].name;
+          break;
+        case 'global':
+          global = module[k]!;
+          break;
+        case 'imports':
+          imports = module[k];
+          break;
+        case 'controllers':
+          controllers = module[k];
+          break;
+        case 'providers':
+          providers = module[k];
+          break;
+        case 'exports':
+          exports = module[k];
+          break;
+      }
     }
   }
-  if (dia.module === 'Unknown') {
-    throw new Error(`Unknown module: ${dia.toString()}`);
+
+  if (global !== undefined) {
+    result.global = global;
   }
-  return dia;
+
+  if (imports !== undefined) {
+    result.imports = await Promise.all(imports.map(buildDiagram));
+  }
+
+  if (controllers !== undefined) {
+    result.controllers = controllers.map(parseController);
+  }
+
+  if (providers !== undefined) {
+    result.providers = providers.map(parseProvider);
+  }
+
+  if (exports !== undefined) {
+    result.exports = exports.map(parseExport);
+  }
+
+  if (result.module === 'Unknown') {
+    throw new Error(`Unknown module: ${result.toString()}`);
+  }
+  return result;
 }
 
-buildDiagram(AppModule).then(dia => {
+function parseController(c: Type<any>): string {
+  return c.name;
+}
+
+function parseProvider(p: Provider): string {
+  if ('name' in p) {
+    return p.name;
+  } else {
+    return p.provide.toString();
+  }
+}
+
+function parseExport(
+  e:
+    | string
+    | symbol
+    | Function
+    | DynamicModule
+    | Provider
+    | Abstract<any>
+    | ForwardReference,
+): string {
+  if (typeof e === 'object') {
+    if ('module' in e) {
+      return e.module.name;
+    } else if ('provide' in e) {
+      return e.provide.toString();
+    } else {
+      // forwardReference 왜써? 쓰지마
+      throw new Error(`forwardReference: ${e.toString()}`);
+    }
+  } else if (typeof e === 'function') {
+    return e.name;
+  } else {
+    return e.toString();
+  }
+}
+
+buildDiagram(AppModule).then(diagram => {
   const outer: any = {};
 
-  const fn = (curdia: Diagram, outer: any) => {
+  const fn = (cur: Diagram, outer: any) => {
     let module: string;
 
-    if ('module' in curdia) {
-      module = curdia['module'];
+    if ('module' in cur) {
+      module = cur['module'];
       outer[module] = {};
 
-      if ('imports' in curdia) {
-        curdia['imports'].forEach(e => {
+      if ('imports' in cur) {
+        cur['imports'].forEach(e => {
           fn(e, outer[module]);
         });
       }
@@ -96,9 +163,31 @@ buildDiagram(AppModule).then(dia => {
     return outer;
   };
 
-  const mdia = fn(dia, outer);
-  writeFileSync('./app.module.m.json', JSON.stringify(mdia, null, 2));
-  writeFileSync('./app.module.json', JSON.stringify(dia, null, 2));
+  writeFileSync('./temp.app.module.json', JSON.stringify(diagram, null, 2));
+  writeFileSync(
+    './temp.app.module.m.json',
+    JSON.stringify(fn(diagram, outer), null, 2),
+  );
+
+  writeFileSync(
+    './temp.app.module.m',
+    JSON.stringify(fn(diagram, outer), null, 2)
+      .split('\n')
+      .map(s => {
+        // 공백은 제거하지 않고 영문자는 살리고 특수문자만 제거하기
+        const n = s.replace(/[^a-zA-Z0-9_ ]/g, '');
+
+        // n 이 공백으로만 이루어져 있다면
+        if (n.trim().length === 0) {
+          return;
+        }
+
+        // 영문자의 뒤쪽 공백은 제거
+        return n.slice(2).replace(/\s+$/, '');
+      })
+      .filter(e => typeof e === 'string')
+      .join('\n'),
+  );
 });
 
 type Diagram = {
