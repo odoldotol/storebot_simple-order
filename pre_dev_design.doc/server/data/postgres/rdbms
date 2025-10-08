@@ -57,3 +57,10 @@ Postgres 라고 해서 손해보다는 잘 설계하면 이득만 있을거다. 
 조회는 동시에 있을 수 있는데 이때는 MySQL 의 시리얼라이즈보다 Postgres 의 시리얼라이즈가 더 빠를거다.
 
 
+
+- Postgres 의 다재다능함 이용
+MVP 에서 복잡성을 줄일 수 있어보임
+캐싱 -> unloggedtable
+정산이나 정합성 배치작업 같은것들 -> Pgcron
+인증, 보안 -> pgcrypto
+벡터디비 -> pgvector, tsvector
