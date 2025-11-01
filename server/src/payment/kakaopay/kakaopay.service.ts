@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import {
   Orderable,
+  PaymentToken,
   // OrderId,
   // OrderSession,
   Redirect,
-  Url,
   // UserId
 } from '@type';
 
@@ -15,7 +15,7 @@ export class PaymentKakaopayService {
    */
   public async ready(
     orderable: Orderable,
-    orderPaymentToken: Url,
+    orderPaymentToken: PaymentToken,
   ): Promise<{
     tid: string;
     redirect: Redirect;

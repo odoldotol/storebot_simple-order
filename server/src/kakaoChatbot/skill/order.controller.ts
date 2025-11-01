@@ -12,7 +12,7 @@ import { OrderPlacementService } from '@orderPlacement';
 import { API_SPEC } from '@apiSpec/kakaoChatbotSkillOrder.apiSpec';
 
 @Controller(API_SPEC.prefix)
-// @UseGuards
+// @UseGuards - Auth(User)
 // @UseInterceptors(TimeoutInterceptor)
 // @UseFilters
 export class KakaoChatbotSkillOrderController {
@@ -25,8 +25,8 @@ export class KakaoChatbotSkillOrderController {
   public async place(
     userId: string, // @Todo - Pipe
   ): Promise<SkillResponseV2> {
-    await this.orderPlacementSrv.place(userId);
-    return this.resOrderBody.place();
+    const placeable = await this.orderPlacementSrv.place(userId);
+    return this.resOrderBody.place(placeable);
   }
 
   // .../session

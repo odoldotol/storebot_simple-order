@@ -14,11 +14,11 @@ export class StoreStateService {
   }
 
   public isOrderable(storeState: StoreState): boolean {
-    return storeState.store_state_code === StoreStateCode.OPEN;
+    return storeState.state_code === StoreStateCode.OPEN;
   }
 
   public isBusinessActive(storeState: StoreState): boolean {
-    return storeState.store_state_code >= StoreStateCode.OPEN;
+    return storeState.state_code >= StoreStateCode.OPEN;
   }
 }
 

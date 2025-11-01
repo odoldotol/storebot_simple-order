@@ -3,6 +3,7 @@ import { Loggable } from '@logger';
 import { PaymentSessionTokenService } from './token.service';
 import { PaymentKakaopayService } from '@paymentKakaopay';
 import {
+  HasUserId,
   Orderable,
   OrderId,
   Payable,
@@ -10,7 +11,6 @@ import {
   PaymentToken,
   Placeable,
   UserId,
-  WithUserId,
 } from '@type';
 
 @Injectable()
@@ -90,9 +90,9 @@ export class PaymentSessionService extends Loggable {
     };
   }
 
-  public async close(withUserId: WithUserId): Promise<void> {
+  public async close(hasUserId: HasUserId): Promise<void> {
     try {
-      await this.repo.delete(withUserId.user_id);
+      await this.repo.delete(hasUserId.user_id);
     } catch (error) {
       this.logger.warn(error);
     }

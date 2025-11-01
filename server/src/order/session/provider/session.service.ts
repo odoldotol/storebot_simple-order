@@ -3,13 +3,13 @@ import { Loggable } from '@logger';
 import { OrderSessionRepository } from './session.repository';
 import { StoreStateService } from '@storeState';
 import {
+  HasUserId,
   Orderable,
   OrderSession,
   Payable,
   Placeable,
   StoreState,
   UserId,
-  WithUserId,
 } from '@type';
 import {
   NotFoundOrderSessionException,
@@ -107,8 +107,8 @@ export class OrderSessionService extends Loggable {
   }
 
   public async close(userId: UserId): Promise<void>;
-  public async close(withUserId: WithUserId): Promise<void>;
-  public async close(arg: UserId | WithUserId): Promise<void> {
+  public async close(hasUserId: HasUserId): Promise<void>;
+  public async close(arg: UserId | HasUserId): Promise<void> {
     const userId = typeof arg === 'string' ? arg : arg.user_id;
 
     try {
@@ -131,7 +131,7 @@ export class OrderSessionService extends Loggable {
    */
   private checkId(arg: OrderSession | Orderable, payable: Payable): void {
     if (payable.order_session_id !== arg.order_session_id) {
-      throw 'store_state_code' in arg
+      throw 'state_code' in arg
         ? new OrderableSessionIdFaultException(arg)
         : new OrderSessionIdFaultException(arg);
     }
