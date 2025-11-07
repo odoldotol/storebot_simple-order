@@ -25,8 +25,8 @@ export class KakaoChatbotSkillOrderController {
   public async place(
     userId: string, // @Todo - Pipe
   ): Promise<SkillResponseV2> {
-    const placeable = await this.orderPlacementSrv.place(userId);
-    return this.resOrderBody.place(placeable);
+    const payable = await this.orderPlacementSrv.place(userId);
+    return this.resOrderBody.place(payable);
   }
 
   // .../session

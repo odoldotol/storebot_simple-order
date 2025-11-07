@@ -3,13 +3,10 @@ import { Loggable } from '@logger';
 import { PaymentSessionTokenService } from './token.service';
 import { PaymentKakaopayService } from '@paymentKakaopay';
 import {
-  HasUserId,
   Orderable,
   OrderId,
   Payable,
   PaymentSession,
-  PaymentToken,
-  Placeable,
   UserId,
 } from '@type';
 
@@ -29,47 +26,26 @@ export class PaymentSessionService extends Loggable {
     return this.repo.exists(userId);
   }
 
-  public async getPayable(userId: UserId): Promise<Payable>;
-  public async getPayable(paymentToken: PaymentToken): Promise<Payable>;
-  public async getPayable(arg: UserId | PaymentToken): Promise<Payable> {
-    let userId: UserId;
-    let orderId: OrderId | undefined = undefined;
-
-    // @Todo - UserId 인지 PaymentToken 인지 길이가 16인지로 Identify 한다는것이 나쁨.
-    if (arg.length === 16) {
-      ({ userId, orderId } = await this.paymentSessionTokenSrv.getIds(arg));
-    } else {
-      userId = arg;
-    }
-
+  public async getSession(userId: UserId): Promise<PaymentSession> {
     const session = await this.repo.read(userId);
 
     if (session === null) {
       throw new Error(); // NotFoundPaymentSessionException
     }
 
-    if (orderId !== undefined && session.order_id !== orderId) {
-      throw new Error(); // PaymentSessionFaultException
-    }
-
-    return {
-      user_id: userId,
-      ...session,
-    };
+    return session;
   }
 
   public async start(
+    userId: UserId,
     orderId: OrderId,
     orderable: Orderable,
-  ): Promise<Placeable> {
+  ): Promise<Payable> {
     if (await this.repo.exists(orderId)) {
       throw new Error(); // PaymentSessionFaultException
     }
 
-    const paymentToken = await this.paymentSessionTokenSrv.generate(
-      orderable.user_id,
-      orderId,
-    );
+    const paymentToken = await this.paymentSessionTokenSrv.generate(userId, orderId);
 
     const { tid, redirect } = await this.paymentKakaopaySrv.ready(
       orderable,
@@ -80,7 +56,7 @@ export class PaymentSessionService extends Loggable {
       .create(orderId, orderable.order_session_id, tid, redirect, paymentToken)
       .catch(async (error: any) => {
         await this.paymentKakaopaySrv.cancel(tid);
-        await this.destroy(orderable.user_id); //
+        await this.destroy(userId); //
         throw error; // PaymentSessionFaultException
       });
 
@@ -90,9 +66,9 @@ export class PaymentSessionService extends Loggable {
     };
   }
 
-  public async close(hasUserId: HasUserId): Promise<void> {
+  public async close(userId: UserId): Promise<void> {
     try {
-      await this.repo.delete(hasUserId.user_id);
+      await this.repo.delete(userId);
     } catch (error) {
       this.logger.warn(error);
     }
@@ -100,23 +76,22 @@ export class PaymentSessionService extends Loggable {
 
   /**
    * 실패시 치명적인 상황 검토필!
+   * 
+   * @Todo 불필요한 재귀함수 형태
    */
-  public async destroy(user_id: UserId): Promise<void>;
-  public async destroy(payable: Payable): Promise<void>;
-  public async destroy(arg: UserId | Payable): Promise<void>;
-  public async destroy(arg: UserId | Payable): Promise<void> {
-    if (typeof arg === 'string') {
-      const ss = await this.repo.read(arg);
-      return ss ? this.destroy({ user_id: arg, ...ss }) : void 0;
+  public async destroy(user_id: UserId, session?: PaymentSession): Promise<void> {
+    if (session === undefined) {
+      session = await this.repo.read(user_id) ?? undefined;
+      return session ? this.destroy(user_id, session) : void 0;
     }
 
     await Promise.all([
       // 결제 준비중인것만 취소해야함
-      this.paymentKakaopaySrv.cancel(arg.tid),
+      this.paymentKakaopaySrv.cancel(session.tid),
       this.paymentSessionTokenSrv
-        .destroy(arg.payment_token)
+        .destroy(session.payment_token)
         .catch(e => this.logger.error(e)),
-      this.repo.delete(arg.user_id).catch(e => this.logger.error(e)),
+      this.repo.delete(user_id).catch(e => this.logger.error(e)),
     ]);
   }
 }

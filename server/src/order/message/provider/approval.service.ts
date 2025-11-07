@@ -6,14 +6,8 @@ export class OrderMessageApprovalService {
   /**
    * @Todo - Imple
    */
-  public async push(
-    placeable: Placeable,
-    pgToken: string,
-    nickname: string,
-  ): Promise<string> {
+  public async push(placeable: Placeable): Promise<string> {
     placeable;
-    pgToken;
-    nickname;
 
     return '';
   }

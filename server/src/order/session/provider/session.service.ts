@@ -3,11 +3,10 @@ import { Loggable } from '@logger';
 import { OrderSessionRepository } from './session.repository';
 import { StoreStateService } from '@storeState';
 import {
-  HasUserId,
   Orderable,
   OrderSession,
   Payable,
-  Placeable,
+  PaymentSession,
   StoreState,
   UserId,
 } from '@type';
@@ -28,6 +27,22 @@ export class OrderSessionService extends Loggable {
   }
 
   /**
+   * throw NotFoundOrderSessionException if null
+   */
+  public async getSession(userId: UserId): Promise<OrderSession> {
+    const session = await this.repo.read(userId);
+
+    this.checkNull(session);
+
+    return session;
+  }
+
+  /**
+   * @Todo implement
+   */
+  public addItem(): void {}
+
+  /**
    * - check null
    * - check incomplete
    * - check store orderable
@@ -45,7 +60,6 @@ export class OrderSessionService extends Loggable {
     this.processByStoreState(storeState, userId);
 
     return {
-      user_id: userId,
       ...session,
       ...storeState,
     };
@@ -62,24 +76,23 @@ export class OrderSessionService extends Loggable {
    * - checkComplete: true
    * - checkIdLast: false
    */
-  public async getPlaceable(
-    payable: Payable,
+  public async getPayable(
+    userId: UserId,
+    paymentSession: PaymentSession,
     options?: CheckOptions,
-  ): Promise<Placeable> {
+  ): Promise<Payable> {
     options = {
       checkComplete: true,
       checkIdLast: false,
       ...options,
     };
 
-    const userId = payable.user_id;
-
     const session = await this.repo.read(userId);
 
     this.checkNull(session);
 
     if (options.checkIdLast === false) {
-      this.checkId(session, payable);
+      this.checkId(session, paymentSession);
     }
 
     if (options.checkComplete) {
@@ -91,26 +104,21 @@ export class OrderSessionService extends Loggable {
     this.processByStoreState(storeState, userId);
 
     const orderable = {
-      user_id: userId,
       ...session,
       ...storeState,
     };
 
     if (options.checkIdLast) {
-      this.checkId(orderable, payable);
+      this.checkId(orderable, paymentSession);
     }
 
     return {
       ...orderable,
-      ...payable,
+      ...paymentSession,
     };
   }
 
-  public async close(userId: UserId): Promise<void>;
-  public async close(hasUserId: HasUserId): Promise<void>;
-  public async close(arg: UserId | HasUserId): Promise<void> {
-    const userId = typeof arg === 'string' ? arg : arg.user_id;
-
+  public async close(userId: UserId): Promise<void> {
     try {
       await this.repo.delete(userId);
     } catch (error) {
@@ -129,8 +137,8 @@ export class OrderSessionService extends Loggable {
   /**
    * throw OrderableIdFaultException or OrderSessionIdFaultException
    */
-  private checkId(arg: OrderSession | Orderable, payable: Payable): void {
-    if (payable.order_session_id !== arg.order_session_id) {
+  private checkId(arg: OrderSession | Orderable, paymentSession: PaymentSession): void {
+    if (paymentSession.order_session_id !== arg.order_session_id) {
       throw 'state_code' in arg
         ? new OrderableSessionIdFaultException(arg)
         : new OrderSessionIdFaultException(arg);
@@ -142,10 +150,9 @@ export class OrderSessionService extends Loggable {
    * 오더세션 무결성 체크 (메인메뉴, 선택옵션 등등) \
    * 어느 부분이 미완성인지 IncompleteOrderSessionException 를 던져서 알려줌
    */
-  private validate(session: OrderSession): OrderSession {
-    // TODO: Implement validation logic
+  private validate(session: OrderSession): void {
+    session; // TODO: Implement validation logic
     // throw new IncompleteOrderSessionException({});
-    return session;
   }
 
   /**

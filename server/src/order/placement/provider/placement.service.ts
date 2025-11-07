@@ -8,7 +8,7 @@ import {
   OrderMessageApprovalService,
 } from '@orderMessage';
 import { OrderPlacementApprovalResponseService } from './approvalResponse.service';
-import { Orderable, Payable, Placeable, UserId } from '@type';
+import { Orderable, OrderId, Payable, PaymentSession, UserId } from '@type';
 import {
   IncompleteOrderSessionException,
   NotFoundOrderSessionException,
@@ -29,7 +29,7 @@ export class OrderPlacementService extends Loggable {
     super();
   }
 
-  public async place(userId: UserId): Promise<Placeable> {
+  public async place(userId: UserId): Promise<Payable> {
     if (await this.paymentSessionSrv.isPending(userId)) {
       return this.placeInPending(userId);
     }
@@ -37,17 +37,17 @@ export class OrderPlacementService extends Loggable {
     return this.placeNew(userId);
   }
 
-  private async placeInPending(userId: UserId): Promise<Placeable> {
-    let payable: Payable | undefined = undefined;
+  private async placeInPending(userId: UserId): Promise<Payable> {
+    let paymentSession: PaymentSession | undefined = undefined;
 
     try {
-      payable = await this.paymentSessionSrv.getPayable(userId);
-      return await this.orderSessionSrv.getPlaceable(payable, {
+      paymentSession = await this.paymentSessionSrv.getSession(userId);
+      return await this.orderSessionSrv.getPayable(userId, paymentSession, {
         checkIdLast: true,
       });
     } catch (error) {
       await this.paymentSessionSrv
-        .destroy(payable ?? userId)
+        .destroy(userId, paymentSession)
         .catch(e => this.logger.error(e)); //
 
       if (
@@ -59,10 +59,10 @@ export class OrderPlacementService extends Loggable {
       }
 
       if (error instanceof OrderableSessionIdFaultException) {
-        return this.placeNew(error.orderable);
+        return this.createPayable(userId, error.orderable);
       }
 
-      if (payable) {
+      if (paymentSession) {
         this.logger.error(error); // orderable 에서 예상치 못한 에러 발생!?
         // throw error;
       } else {
@@ -73,40 +73,48 @@ export class OrderPlacementService extends Loggable {
     }
   }
 
-  private async placeNew(userId: UserId): Promise<Placeable>;
-  private async placeNew(orderable: Orderable): Promise<Placeable>;
-  private async placeNew(arg: UserId | Orderable): Promise<Placeable> {
-    let orderable: Orderable;
+  private async placeNew(userId: UserId): Promise<Payable> {
+    const orderable = await this.orderSessionSrv.getOrderable(userId);
 
-    if (typeof arg === 'string') {
-      orderable = await this.orderSessionSrv.getOrderable(arg);
-    } else {
-      orderable = arg;
-    }
+    return this.createPayable(userId, orderable);
+  }
 
-    return this.paymentSessionSrv.start(this.orderIdSrv.generate(), orderable);
+  private createPayable(userId: UserId, orderable: Orderable): Promise<Payable> {
+    return this.paymentSessionSrv.start(userId, this.orderIdSrv.generate(), orderable);
   }
 
   public async approve(
-    payable: Payable,
+    userId: UserId,
+    orderId: OrderId,
     pgToken: string,
-    nickname: string,
   ): Promise<void> {
-    let placeable: Placeable | undefined = undefined;
+    // userId 로 nickname 가져오기
+    const nickname = '';
+
+    // PaymentSession 찾아서 order_id 다르면 PaymentSessionFaultException 던지기
+    const paymentSession = await this.paymentSessionSrv.getSession(userId);
+    if (paymentSession.order_id !== orderId) {
+      throw new Error(); // PaymentSessionFaultException
+    }
 
     try {
-      placeable = await this.orderSessionSrv.getPlaceable(payable, {
+      const payable = await this.orderSessionSrv.getPayable(userId, paymentSession, {
         checkComplete: false,
       });
 
-      await this.orderMessageApprovalSrv.push(placeable, pgToken, nickname);
+      await this.orderMessageApprovalSrv.push({
+        user_id: userId,
+        nickname,
+        pg_token: pgToken,
+        ...payable
+      });
     } catch (error) {
       await Promise.allSettled([
-        this.paymentSessionSrv.destroy(payable), //
+        this.paymentSessionSrv.destroy(userId, paymentSession), //
         this.orderMessageApprovalFaultSrv
-          .push(payable.user_id, error)
+          .push(userId, error)
           .catch(e =>
-            this.orderPlacementApprovalResponseSrv.error(payable.user_id, e),
+            this.orderPlacementApprovalResponseSrv.error(userId, e),
           ),
       ]);
 
@@ -114,8 +122,8 @@ export class OrderPlacementService extends Loggable {
     }
 
     await Promise.all([
-      this.paymentSessionSrv.close(placeable),
-      this.orderSessionSrv.close(placeable),
+      this.paymentSessionSrv.close(userId),
+      this.orderSessionSrv.close(userId),
     ]);
   }
 }

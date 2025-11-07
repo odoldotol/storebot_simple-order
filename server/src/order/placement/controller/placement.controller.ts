@@ -9,7 +9,7 @@ import {
   OrderPlacementService,
 } from '../provider';
 import { API_SPEC } from '@apiSpec/orderPlacement.apiSpec';
-import { Payable } from '@type';
+import { OrderId, UserId } from '@type';
 
 @Controller(API_SPEC.prefix)
 export class OrderPlacementController {
@@ -22,16 +22,13 @@ export class OrderPlacementController {
   public async approveByKakaopay(
     // 파라미터 및 쿼리스트링에서 PaymentToken, pgToken 추출하기
     pgToken = '',
-    // PaymentToken 으로 payable 가져오기 (PaymentSessionService.prototype.getPayable)
-    payable = {} as Payable,
-    // nickname 가져오기
-    nickname = '',
+    // PaymentToken 으로 orderId, userId 추출하기 (PaymentSessionTokenService.prototype.getIds)
+    orderId = '' as OrderId,
+    userId = '' as UserId,
   ) {
-    const result = this.orderPlacementApprovalResponseSrv.response(
-      payable.user_id,
-    );
+    const result = this.orderPlacementApprovalResponseSrv.response(userId);
 
-    await this.orderPlacementService.approve(payable, pgToken, nickname);
+    await this.orderPlacementService.approve(userId, orderId, pgToken);
 
     return result;
   }
