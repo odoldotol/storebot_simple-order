@@ -98,6 +98,18 @@
       "OrderSession": {
         "RedisGeneral": {
           "Redis": {}
+        }
+      },
+      "OrderApprovalSession": {
+        "RedisGeneral": {
+          "Redis": {}
+        }
+      },
+      "OrderPlacement": {
+        "OrderSession": {
+          "RedisGeneral": {
+            "Redis": {}
+          }
         },
         "StoreState": {
           "RedisGeneral": {
@@ -116,28 +128,50 @@
               }
             }
           }
+        },
+        "PaymentSession": {
+          "RedisGeneral": {
+            "Redis": {}
+          },
+          "PaymentKakaopay": {
+            "HttpModule": {}
+          }
+        },
+        "OrderMessage": {
+          "Message": {
+            "RedisMessage": {
+              "Redis": {}
+            }
+          }
+        }
+      }
+    },
+    "PaymentCallbackGateway": {
+      "OrderApprovalSession": {
+        "RedisGeneral": {
+          "Redis": {}
         }
       },
       "OrderPlacement": {
         "OrderSession": {
           "RedisGeneral": {
             "Redis": {}
+          }
+        },
+        "StoreState": {
+          "RedisGeneral": {
+            "Redis": {}
           },
-          "StoreState": {
+          "StoreRepository": {
+            "Repository": {
+              "Postgres": {}
+            },
             "RedisGeneral": {
               "Redis": {}
             },
-            "StoreRepository": {
-              "Repository": {
-                "Postgres": {}
-              },
+            "Cache": {
               "RedisGeneral": {
                 "Redis": {}
-              },
-              "Cache": {
-                "RedisGeneral": {
-                  "Redis": {}
-                }
               }
             }
           }
@@ -155,6 +189,13 @@
             "RedisMessage": {
               "Redis": {}
             }
+          }
+        }
+      },
+      "OrderMessage": {
+        "Message": {
+          "RedisMessage": {
+            "Redis": {}
           }
         }
       }

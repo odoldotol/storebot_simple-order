@@ -1,14 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
-import { Orderable, OrderSession, StoreState } from '@type';
+import { OrderSession, StoreState } from '@type';
 
 export class OrderSessionIdFaultException extends BadRequestException {
   constructor(public readonly orderSession: OrderSession) {
-    super(''); //
-  }
-}
-
-export class OrderableSessionIdFaultException extends BadRequestException {
-  constructor(public readonly orderable: Orderable) {
     super(''); //
   }
 }

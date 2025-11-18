@@ -59,6 +59,13 @@ App
     OrderSession
       RedisGeneral
         Redis
+    OrderApprovalSession
+      RedisGeneral
+        Redis
+    OrderPlacement
+      OrderSession
+        RedisGeneral
+          Redis
       StoreState
         RedisGeneral
           Redis
@@ -70,21 +77,6 @@ App
           Cache
             RedisGeneral
               Redis
-    OrderPlacement
-      OrderSession
-        RedisGeneral
-          Redis
-        StoreState
-          RedisGeneral
-            Redis
-          StoreRepository
-            Repository
-              Postgres
-            RedisGeneral
-              Redis
-            Cache
-              RedisGeneral
-                Redis
       PaymentSession
         RedisGeneral
           Redis
@@ -94,6 +86,38 @@ App
         Message
           RedisMessage
             Redis
+  PaymentCallbackGateway
+    OrderApprovalSession
+      RedisGeneral
+        Redis
+    OrderPlacement
+      OrderSession
+        RedisGeneral
+          Redis
+      StoreState
+        RedisGeneral
+          Redis
+        StoreRepository
+          Repository
+            Postgres
+          RedisGeneral
+            Redis
+          Cache
+            RedisGeneral
+              Redis
+      PaymentSession
+        RedisGeneral
+          Redis
+        PaymentKakaopay
+          HttpModule
+      OrderMessage
+        Message
+          RedisMessage
+            Redis
+    OrderMessage
+      Message
+        RedisMessage
+          Redis
   OrderApproval
     PaymentKakaopay
       HttpModule

@@ -168,14 +168,26 @@ export const OrderSessionModule: DynamicModule = {
   module: class OrderSession {},
   imports: [
     RedisGeneralModule, // json
-    StoreStateModule,
   ],
 };
 import 'src/order/session/session.module';
 
+export const OrderApprovalSessionModule: DynamicModule = {
+  module: class OrderApprovalSession {},
+  imports: [
+    RedisGeneralModule, // hash?
+  ],
+};
+import 'src/order/approvalSession/approvalSession.module';
+
 export const OrderPlacementModule: DynamicModule = {
   module: class OrderPlacement {},
-  imports: [OrderSessionModule, PaymentSessionModule, OrderMessageModule],
+  imports: [
+    OrderSessionModule,
+    StoreStateModule,
+    PaymentSessionModule,
+    OrderMessageModule,
+  ],
 };
 import 'src/order/placement/placement.module';
 
@@ -199,10 +211,21 @@ export const KakaoChatbotSkillModule: DynamicModule = {
     MenuDocumentModule,
     OrderDocumentModule,
     OrderSessionModule,
+    OrderApprovalSessionModule,
     OrderPlacementModule,
   ],
 };
 import 'src/kakaoChatbot/skill/skill.module';
+
+export const PaymentCallbackGatewayModule: DynamicModule = {
+  module: class PaymentCallbackGateway {},
+  imports: [
+    OrderApprovalSessionModule,
+    OrderPlacementModule,
+    OrderMessageModule,
+  ],
+};
+import 'src/payment/callbackGateway/callbackGateway.module';
 
 export const OrderApprovalModule: DynamicModule = {
   module: class OrderApproval {},
@@ -230,6 +253,7 @@ export const AppModule: DynamicModule = {
     LoggerModule,
     // ConfigModule,
     KakaoChatbotSkillModule,
+    PaymentCallbackGatewayModule,
     OrderApprovalModule,
     AlertModule,
   ],

@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { Inject, Injectable, Provider } from '@nestjs/common';
-import { OrderId, PaymentToken, UserId } from '@type';
+import { OrderId, PayableToken, UserId } from '@type';
 
 /**
  * UserId 와 OrderId 를 문자열 그대로 Redis 에 String 으로 저장하는데 메모리를 절약할 여지가 있음.
@@ -8,15 +8,15 @@ import { OrderId, PaymentToken, UserId } from '@type';
  * 하지만 동시 결제세션 유지중인것이 100만개라고 해도 36MB 뿐이긴함.
  */
 @Injectable()
-export class PaymentSessionTokenService {
+export class PayableTokenService {
   private readonly bytes = 12;
   private readonly retryLimit = 100;
 
   private readonly userIdLength = 36; // uuidv7 길이
 
   constructor(
-    @Inject('PaymentSessionTokenRepository')
-    private readonly repo: typeof PaymentSessionTokenRepository,
+    @Inject('PayableTokenRepository')
+    private readonly repo: typeof PayableTokenRepository,
   ) {}
 
   /**
@@ -27,39 +27,39 @@ export class PaymentSessionTokenService {
   public async generate(
     userId: UserId,
     orderId: OrderId,
-  ): Promise<PaymentToken> {
+  ): Promise<PayableToken> {
     let retry = 0;
-    let token: PaymentToken;
+    let token: PayableToken;
 
     do {
       try {
         token = this.generateOpaqueToken(this.bytes).toString(
           'base64url',
-        ) as PaymentToken;
+        ) as PayableToken;
         await this.repo.create(token, userId, orderId); // 토큰 중복시 키애러 던져짐
         return token;
       } catch (error: any) {
         if (error !== /* @Todo */ 'Duplicate key error') {
-          throw new PaymentTokenFaultException(error);
+          throw new PayableTokenFaultException(error);
         }
       }
     } while (++retry < this.retryLimit);
 
     // suppose never
-    throw new PaymentTokenFaultException('Exceed retry limit');
+    throw new PayableTokenFaultException('Exceed retry limit');
   }
 
-  public destroy(token: PaymentToken): Promise<void> {
+  public destroy(token: PayableToken): Promise<void> {
     return this.repo.delete(token);
   }
 
   public async getIds(
-    token: PaymentToken,
+    token: PayableToken,
   ): Promise<{ userId: UserId; orderId: OrderId }> {
     const value = await this.repo.read(token);
 
     if (value === null) {
-      throw new PaymentTokenFaultException();
+      throw new PayableTokenFaultException();
     }
 
     return {
@@ -76,16 +76,16 @@ export class PaymentSessionTokenService {
 /**
  * @Todo - Imple
  */
-class PaymentTokenFaultException extends Error {}
+class PayableTokenFaultException extends Error {}
 
-const PaymentSessionTokenRepository = {
-  async read(token: PaymentToken): Promise<string | null> {
+const PayableTokenRepository = {
+  async read(token: PayableToken): Promise<string | null> {
     token;
     return null;
   },
 
   async create(
-    token: PaymentToken,
+    token: PayableToken,
     userId: UserId,
     orderId: OrderId,
   ): Promise<void> {
@@ -94,12 +94,12 @@ const PaymentSessionTokenRepository = {
     orderId;
   },
 
-  async delete(token: PaymentToken): Promise<void> {
+  async delete(token: PayableToken): Promise<void> {
     token;
   },
 };
 
-export const PaymentSessionTokenRepositoryProvider: Provider = {
-  provide: 'PaymentSessionTokenRepository',
-  useValue: PaymentSessionTokenRepository,
+export const PayableTokenRepositoryProvider: Provider = {
+  provide: 'PayableTokenRepository',
+  useValue: PayableTokenRepository,
 };

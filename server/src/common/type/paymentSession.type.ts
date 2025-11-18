@@ -1,7 +1,6 @@
 import { Url } from './url.type';
 import { OrderId } from './id';
 import { OrderSessionId } from './orderSession.type';
-import { Base64url } from './base64url.type';
 
 /**
  * key: user_id
@@ -11,7 +10,6 @@ export type PaymentSession = {
   order_session_id: OrderSessionId;
   tid: string;
   redirect: Redirect;
-  payment_token: PaymentToken; // to destroy
 };
 
 export type Redirect = {
@@ -21,5 +19,3 @@ export type Redirect = {
   android_app_scheme: string;
   ios_app_scheme: string;
 };
-
-export type PaymentToken = Base64url;

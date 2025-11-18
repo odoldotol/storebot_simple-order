@@ -6,19 +6,23 @@ import { StoreId, StoreState, StoreStateCode } from '@type';
 export class StoreStateService {
   constructor(private readonly repo: StoreStateRepository) {}
 
-  public get(storeId: StoreId): Promise<StoreState> {
+  public getState(storeId: StoreId): Promise<StoreState> {
     this.repo.read(storeId);
     // 없으면 Store, Business 에서 읽어야함
     // Store 에도 없으면 에러
     throw new Error();
   }
 
-  public isOrderable(storeState: StoreState): boolean {
+  public isOpen(storeState: StoreState): boolean {
     return storeState.state_code === StoreStateCode.OPEN;
   }
 
   public isBusinessActive(storeState: StoreState): boolean {
     return storeState.state_code >= StoreStateCode.OPEN;
+  }
+
+  public isBusinessInActive(storeState: StoreState): boolean {
+    return storeState.state_code < StoreStateCode.OPEN;
   }
 }
 

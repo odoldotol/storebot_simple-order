@@ -1,11 +1,11 @@
 import { ApiSpec } from './type';
-import { OrderPlacementController } from '@orderPlacement/controller';
+import { PaymentCallbackGatewayController } from '@paymentCallbackGateway/controller';
 
 // prettier-ignore
-export const API_SPEC: ApiSpec<keyof OrderPlacementController> =
+export const API_SPEC: ApiSpec<keyof PaymentCallbackGatewayController> =
 
 {
-  "prefix": "order/placement",
+  "prefix": "payment/callback",
   "approveByKakaopay": {
     "method": "POST",
     "path": "approval/kakaopay"

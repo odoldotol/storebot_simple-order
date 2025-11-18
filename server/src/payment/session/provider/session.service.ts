@@ -1,12 +1,12 @@
 import { Inject, Injectable, Provider } from '@nestjs/common';
 import { Loggable } from '@logger';
-import { PaymentSessionTokenService } from './token.service';
 import { PaymentKakaopayService } from '@paymentKakaopay';
 import {
-  Orderable,
   OrderId,
-  Payable,
+  OrderSession,
+  PayableToken,
   PaymentSession,
+  Redirect,
   UserId,
 } from '@type';
 
@@ -15,7 +15,6 @@ export class PaymentSessionService extends Loggable {
   constructor(
     @Inject('PaymentSessionRepository')
     private readonly repo: typeof PaymentSessionRepository,
-    private readonly paymentSessionTokenSrv: PaymentSessionTokenService,
     private readonly paymentKakaopaySrv: PaymentKakaopayService,
   ) {
     super();
@@ -26,6 +25,22 @@ export class PaymentSessionService extends Loggable {
     return this.repo.exists(userId);
   }
 
+  /**
+   * @Todo Redis Function 루아스크립트?
+   */
+  public async getSessionIfPending(
+    userId: UserId,
+  ): Promise<PaymentSession | null> {
+    if (await this.isPending(userId)) {
+      return null;
+    }
+
+    return this.getSession(userId);
+  }
+
+  /**
+   * @Error throw NotFoundPaymentSessionException if null
+   */
   public async getSession(userId: UserId): Promise<PaymentSession> {
     const session = await this.repo.read(userId);
 
@@ -36,62 +51,66 @@ export class PaymentSessionService extends Loggable {
     return session;
   }
 
+  /**
+   * ### 카카오페이 결제준비하고 PaymentSession 생성
+   *
+   * 결제준비와 PaymentSession 생성이 원자적으로 이뤄져야 함.
+   *
+   * @Todo orderable 말고 필요한것만 받기
+   */
   public async start(
     userId: UserId,
     orderId: OrderId,
-    orderable: Orderable,
-  ): Promise<Payable> {
-    if (await this.repo.exists(orderId)) {
-      throw new Error(); // PaymentSessionFaultException
-    }
+    payableToken: PayableToken,
+    orderSession: OrderSession, // @Todo - 필요한것만 받기
+  ): Promise<PaymentSession> {
+    let tid: string | undefined = undefined,
+      redirect: Redirect | undefined = undefined;
 
-    const paymentToken = await this.paymentSessionTokenSrv.generate(userId, orderId);
+    try {
+      ({ tid, redirect } = await this.paymentKakaopaySrv.ready(
+        orderSession, // @Todo - 필요한것만 넘기기, order_id, user_id, amount 등
+        payableToken,
+      ));
 
-    const { tid, redirect } = await this.paymentKakaopaySrv.ready(
-      orderable,
-      paymentToken,
-    );
-
-    const paymentSession = await this.repo
-      .create(orderId, orderable.order_session_id, tid, redirect, paymentToken)
-      .catch(async (error: any) => {
+      return await this.repo.create(
+        orderId,
+        orderSession.order_session_id,
+        tid,
+        redirect,
+      );
+    } catch (error) {
+      if (tid !== undefined) {
         await this.paymentKakaopaySrv.cancel(tid);
-        await this.destroy(userId); //
-        throw error; // PaymentSessionFaultException
-      });
+      }
 
-    return {
-      ...orderable,
-      ...paymentSession,
-    };
+      await this.destroy(userId); //
+
+      // @Todo - 적절한 예외 던지기
+      throw error; // PaymentSessionFaultException ?
+    }
   }
 
-  public async close(userId: UserId): Promise<void> {
-    try {
-      await this.repo.delete(userId);
-    } catch (error) {
-      this.logger.warn(error);
-    }
+  public close(userId: UserId): Promise<boolean> {
+    return this.repo.delete(userId);
   }
 
   /**
-   * 실패시 치명적인 상황 검토필!
-   * 
-   * @Todo 불필요한 재귀함수 형태
+   * @Todo 레디스세션과 카카오페이세션 불일치가능성 관리 및 실패시 처리 검토
    */
-  public async destroy(user_id: UserId, session?: PaymentSession): Promise<void> {
+  public async destroy(
+    userId: UserId,
+    session?: PaymentSession,
+  ): Promise<void> {
     if (session === undefined) {
-      session = await this.repo.read(user_id) ?? undefined;
-      return session ? this.destroy(user_id, session) : void 0;
+      session = await this.getSession(userId);
     }
 
     await Promise.all([
       // 결제 준비중인것만 취소해야함
       this.paymentKakaopaySrv.cancel(session.tid),
-      this.paymentSessionTokenSrv
-        .destroy(session.payment_token)
-        .catch(e => this.logger.error(e)),
-      this.repo.delete(user_id).catch(e => this.logger.error(e)),
+      // @Todo - tid 확인하고 del 하는 로직 Redis Function 루아스크립트?
+      this.repo.delete(userId).catch(e => this.logger.error(e)),
     ]);
   }
 }
@@ -107,8 +126,9 @@ const PaymentSessionRepository = {
     throw new Error(); // key collision
   },
 
-  async delete(userId: UserId): Promise<void> {
+  async delete(userId: UserId): Promise<boolean> {
     userId;
+    return false;
   },
 
   async exists(userId: UserId): Promise<boolean> {
