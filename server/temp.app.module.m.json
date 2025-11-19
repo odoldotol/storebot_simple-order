@@ -100,11 +100,6 @@
           "Redis": {}
         }
       },
-      "OrderApprovalSession": {
-        "RedisGeneral": {
-          "Redis": {}
-        }
-      },
       "OrderPlacement": {
         "OrderSession": {
           "RedisGeneral": {
@@ -135,6 +130,11 @@
           },
           "PaymentKakaopay": {
             "HttpModule": {}
+          }
+        },
+        "OrderApprovalSession": {
+          "RedisGeneral": {
+            "Redis": {}
           }
         },
         "OrderMessage": {
@@ -147,11 +147,6 @@
       }
     },
     "PaymentCallbackGateway": {
-      "OrderApprovalSession": {
-        "RedisGeneral": {
-          "Redis": {}
-        }
-      },
       "OrderPlacement": {
         "OrderSession": {
           "RedisGeneral": {
@@ -184,18 +179,16 @@
             "HttpModule": {}
           }
         },
+        "OrderApprovalSession": {
+          "RedisGeneral": {
+            "Redis": {}
+          }
+        },
         "OrderMessage": {
           "Message": {
             "RedisMessage": {
               "Redis": {}
             }
-          }
-        }
-      },
-      "OrderMessage": {
-        "Message": {
-          "RedisMessage": {
-            "Redis": {}
           }
         }
       }

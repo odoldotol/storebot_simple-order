@@ -6,6 +6,7 @@ import { OrderIdService } from './orderId.service';
 import { OrderMessageApprovalService } from '@orderMessage';
 import { StoreStateService } from '@storeState';
 import { PayableTokenService } from './payableToken.service';
+import { OrderApprovalSessionService } from '@orderApprovalSession';
 import {
   IncompleteOrderSessionException,
   NotOpenStoreException,
@@ -34,6 +35,7 @@ export class OrderPlacementService extends Loggable {
     private readonly payableTokenSrv: PayableTokenService,
     private readonly paymentSessionSrv: PaymentSessionService,
     private readonly orderMessageApprovalSrv: OrderMessageApprovalService,
+    private readonly orderApprovalSessionSrv: OrderApprovalSessionService,
   ) {
     super();
   }
@@ -45,6 +47,11 @@ export class OrderPlacementService extends Loggable {
     userId: UserId,
     orderSessionId: OrderSessionId,
   ): Promise<Payable> {
+    // @Todo - orderApprovalSession 있으면 예외처리
+    if ((await this.orderApprovalSessionSrv.getSession(userId)) !== null) {
+      throw new Error(); // PendingOrderApprovalSessionException
+    }
+
     /*
     유저는 PG 결제준비 로직에 노출될 필요가 없음, '결제전 주문확인' 과 '결제준비' 를 합쳐서 진행.
     -> 한단계 줄어든 UX, 그러나 결제준비가 자주 발생할 수 있고, 이미 준비중인 결제세션을 고려해야함.
@@ -117,34 +124,42 @@ export class OrderPlacementService extends Loggable {
     userId: UserId,
     orderId: OrderId,
   ): Promise<string> {
-    // @Todo - 에러처리: 세션 파괴, 승인실패 메시지 푸시
+    let paymentSession: PaymentSession | undefined = undefined;
+    let orderSession: OrderSession;
+    let storeState: StoreState;
 
-    const [paymentSession, orderSession] = await Promise.all([
-      this.paymentSessionSrv.getSession(userId),
-      this.orderSessionSrv.getSession(userId),
-    ]);
+    try {
+      [paymentSession, orderSession] = await Promise.all([
+        this.paymentSessionSrv.getSession(userId),
+        this.orderSessionSrv.getSession(userId),
+      ]);
 
-    // PaymentSession 찾아서 order_id 다르면 PaymentSessionFaultException 던지기
-    if (paymentSession.order_id !== orderId) {
-      throw new Error(); // PaymentSessionFaultException
-    }
-
-    if (paymentSession.order_session_id !== orderSession.order_session_id) {
-      throw new OrderSessionIdFaultException(orderSession);
-    }
-
-    const storeState = await this.storeStateSrv.getState(orderSession.store_id);
-
-    /*
-    StoreState Open 아니면 NotOpenStoreException 던짐
-    단, Closing | Closed 면 OrderSession 닫고 던짐 (추후 UX 고려)
-    */
-    if (this.storeStateSrv.isOpen(storeState) === false) {
-      if (this.storeStateSrv.isBusinessInActive(storeState)) {
-        this.orderSessionSrv.close(userId).catch(e => this.logger.warn(e));
+      // PaymentSession 찾아서 order_id 다르면 PaymentSessionFaultException 던지기
+      if (paymentSession.order_id !== orderId) {
+        throw new Error(); // PaymentSessionFaultException
       }
 
-      throw new NotOpenStoreException(storeState);
+      if (paymentSession.order_session_id !== orderSession.order_session_id) {
+        throw new OrderSessionIdFaultException(orderSession);
+      }
+
+      storeState = await this.storeStateSrv.getState(orderSession.store_id);
+
+      /*
+      StoreState Open 아니면 NotOpenStoreException 던짐
+      단, Closing | Closed 면 OrderSession 닫고 던짐 (추후 UX 고려)
+      */
+      if (this.storeStateSrv.isOpen(storeState) === false) {
+        if (this.storeStateSrv.isBusinessInActive(storeState)) {
+          this.orderSessionSrv.close(userId).catch(e => this.logger.warn(e));
+        }
+
+        throw new NotOpenStoreException(storeState);
+      }
+    } catch (error) {
+      // @Todo - 에러처리
+      await this.paymentSessionSrv.destroy(userId, paymentSession);
+      throw error;
     }
 
     // @Todo - userId 로 nickname 가져오기, 유저 객체(user_info?) 쓰자..
@@ -162,7 +177,15 @@ export class OrderPlacementService extends Loggable {
       await nickname,
     );
 
-    return this.orderMessageApprovalSrv.push(placeable);
+    const id = await this.orderMessageApprovalSrv.push(placeable);
+
+    try {
+      await this.orderApprovalSessionSrv.start(userId, orderId, id);
+    } catch (error) {
+      // @Todo - 에러처리
+    }
+
+    return id;
   }
 
   /**

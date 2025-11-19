@@ -9,7 +9,6 @@ import {
   SkillResponseV2,
 } from './skillResponse';
 import { OrderPlacementService } from '@orderPlacement';
-import { OrderApprovalSessionService } from '@orderApprovalSession';
 import { API_SPEC } from '@apiSpec/kakaoChatbotSkillOrder.apiSpec';
 import { OrderSessionId } from '@type';
 
@@ -20,7 +19,6 @@ import { OrderSessionId } from '@type';
 export class KakaoChatbotSkillOrderController {
   constructor(
     private readonly resOrderBody: KakaoChatbotSkillResponseOrderBody,
-    private readonly orderApprovalSessionSrv: OrderApprovalSessionService,
     private readonly orderPlacementSrv: OrderPlacementService,
   ) {}
 
@@ -29,11 +27,6 @@ export class KakaoChatbotSkillOrderController {
     userId: string, // @Todo - Pipe
     orderSessionId: OrderSessionId, // @Todo - Pipe
   ): Promise<SkillResponseV2> {
-    const orderApprovalSession =
-      await this.orderApprovalSessionSrv.getSession(userId);
-    // @Todo - orderApprovalSession 완성세션이면 거부, 미완성이면 트레이싱해서 처리, 없으면 진행.
-    orderApprovalSession;
-
     const payable = await this.orderPlacementSrv.place(userId, orderSessionId);
     return this.resOrderBody.place(payable);
   }

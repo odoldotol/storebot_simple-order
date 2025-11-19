@@ -186,6 +186,7 @@ export const OrderPlacementModule: DynamicModule = {
     OrderSessionModule,
     StoreStateModule,
     PaymentSessionModule,
+    OrderApprovalSessionModule,
     OrderMessageModule,
   ],
 };
@@ -211,7 +212,6 @@ export const KakaoChatbotSkillModule: DynamicModule = {
     MenuDocumentModule,
     OrderDocumentModule,
     OrderSessionModule,
-    OrderApprovalSessionModule,
     OrderPlacementModule,
   ],
 };
@@ -219,11 +219,7 @@ import 'src/kakaoChatbot/skill/skill.module';
 
 export const PaymentCallbackGatewayModule: DynamicModule = {
   module: class PaymentCallbackGateway {},
-  imports: [
-    OrderApprovalSessionModule,
-    OrderPlacementModule,
-    OrderMessageModule,
-  ],
+  imports: [OrderPlacementModule],
 };
 import 'src/payment/callbackGateway/callbackGateway.module';
 

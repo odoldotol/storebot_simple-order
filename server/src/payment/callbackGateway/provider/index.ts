@@ -1,1 +1,1 @@
-export * from './approvalResponse.service';
+export * from './response.service';

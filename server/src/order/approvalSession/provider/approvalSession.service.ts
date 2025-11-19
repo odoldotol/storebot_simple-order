@@ -3,16 +3,13 @@ import { OrderId, UserId } from '@type';
 
 @Injectable()
 export class OrderApprovalSessionService {
-  public async ready(userId: UserId, orderId: OrderId): Promise<void> {
-    userId;
-    orderId;
-  }
-
   public async start(
     userId: UserId,
+    orderId: OrderId,
     orderApprovalMessageId: string,
   ): Promise<void> {
     userId;
+    orderId;
     orderApprovalMessageId;
   }
 

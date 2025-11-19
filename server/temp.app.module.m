@@ -59,9 +59,6 @@ App
     OrderSession
       RedisGeneral
         Redis
-    OrderApprovalSession
-      RedisGeneral
-        Redis
     OrderPlacement
       OrderSession
         RedisGeneral
@@ -82,14 +79,14 @@ App
           Redis
         PaymentKakaopay
           HttpModule
+      OrderApprovalSession
+        RedisGeneral
+          Redis
       OrderMessage
         Message
           RedisMessage
             Redis
   PaymentCallbackGateway
-    OrderApprovalSession
-      RedisGeneral
-        Redis
     OrderPlacement
       OrderSession
         RedisGeneral
@@ -110,14 +107,13 @@ App
           Redis
         PaymentKakaopay
           HttpModule
+      OrderApprovalSession
+        RedisGeneral
+          Redis
       OrderMessage
         Message
           RedisMessage
             Redis
-    OrderMessage
-      Message
-        RedisMessage
-          Redis
   OrderApproval
     PaymentKakaopay
       HttpModule

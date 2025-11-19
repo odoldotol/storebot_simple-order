@@ -302,25 +302,6 @@
           ]
         },
         {
-          "module": "OrderApprovalSession",
-          "imports": [
-            {
-              "module": "RedisGeneral",
-              "imports": [
-                {
-                  "module": "Redis"
-                }
-              ]
-            }
-          ],
-          "providers": [
-            "OrderApprovalSessionService"
-          ],
-          "exports": [
-            "OrderApprovalSessionService"
-          ]
-        },
-        {
           "module": "OrderPlacement",
           "imports": [
             {
@@ -437,6 +418,25 @@
               ],
               "exports": [
                 "PaymentSessionService"
+              ]
+            },
+            {
+              "module": "OrderApprovalSession",
+              "imports": [
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                }
+              ],
+              "providers": [
+                "OrderApprovalSessionService"
+              ],
+              "exports": [
+                "OrderApprovalSessionService"
               ]
             },
             {
@@ -490,25 +490,6 @@
       "module": "PaymentCallbackGateway",
       "imports": [
         {
-          "module": "OrderApprovalSession",
-          "imports": [
-            {
-              "module": "RedisGeneral",
-              "imports": [
-                {
-                  "module": "Redis"
-                }
-              ]
-            }
-          ],
-          "providers": [
-            "OrderApprovalSessionService"
-          ],
-          "exports": [
-            "OrderApprovalSessionService"
-          ]
-        },
-        {
           "module": "OrderPlacement",
           "imports": [
             {
@@ -628,6 +609,25 @@
               ]
             },
             {
+              "module": "OrderApprovalSession",
+              "imports": [
+                {
+                  "module": "RedisGeneral",
+                  "imports": [
+                    {
+                      "module": "Redis"
+                    }
+                  ]
+                }
+              ],
+              "providers": [
+                "OrderApprovalSessionService"
+              ],
+              "exports": [
+                "OrderApprovalSessionService"
+              ]
+            },
+            {
               "module": "OrderMessage",
               "imports": [
                 {
@@ -665,41 +665,13 @@
           "exports": [
             "OrderPlacementService"
           ]
-        },
-        {
-          "module": "OrderMessage",
-          "imports": [
-            {
-              "module": "Message",
-              "imports": [
-                {
-                  "module": "RedisMessage",
-                  "imports": [
-                    {
-                      "module": "Redis"
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "providers": [
-            "OrderMessageApprovalService",
-            "OrderMessageApprovalFaultService",
-            "OrderMessagePlacedService"
-          ],
-          "exports": [
-            "OrderMessageApprovalService",
-            "OrderMessageApprovalFaultService",
-            "OrderMessagePlacedService"
-          ]
         }
       ],
       "controllers": [
         "PaymentCallbackGatewayController"
       ],
       "providers": [
-        "PaymentApprovalCallbackResponseService"
+        "PaymentCallbackResponseService"
       ]
     },
     {
